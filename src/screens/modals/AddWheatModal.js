@@ -1,8 +1,19 @@
 import React, { Component } from 'react'
-import {View, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
-import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, MAIN_HEADING } from '../../../Global';
+import {
+    View, 
+    StyleSheet, 
+    TouchableOpacity, 
+    ScrollView, 
+    KeyboardAvoidingView, 
+    Platform, 
+    Keyboard, 
+    Alert,
+    Image
+} from 'react-native';
+import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, FIELD_BACK_COLOR, MAIN_HEADING } from '../../../Global';
 import { Text, Icon, Input, Button, Autocomplete, AutocompleteItem, Modal } from '@ui-kitten/components';
-// import Autocomplete from 'react-native-autocomplete-input';
+import ImagePicker from 'react-native-image-crop-picker';
+import UUIDGenerator from 'react-native-uuid-generator';
 
 class AddWheatModal extends Component {
     constructor(props){
@@ -21,23 +32,74 @@ class AddWheatModal extends Component {
             pp: '',
             jute: '',
             billNo: '',
+            images: []
         }
     }
 
     componentDidMount(){
         Keyboard.addListener("keyboardDidShow", (e) => {
             this.setState({keyboardSize: e.endCoordinates.height})
-        })
+        });
     
         Keyboard.addListener("keyboardDidHide", (e) => {
             this.setState({keyboardSize: e.endCoordinates.height})
-        })
+        });
     }
 
     componentWillUnmount(){
         Keyboard.removeAllListeners("keyboardDidShow");
         Keyboard.removeAllListeners("keyboardDidHide");
     }
+
+    askFromWhereToPickImage = () => {
+        Alert.alert(
+            'Select image from',
+            '',
+            [
+            {text: 'Gallery', onPress: () => this.pickImage('GALLERY')},
+            {text: 'Camera', onPress: () => this.pickImage('CAMERA')},
+            ],
+            {cancelable: true},
+        );
+    };
+
+    pickImage = async (location) => {
+        if (location === 'GALLERY') {
+            ImagePicker.openPicker({
+            multiple: false,
+            mediaType: 'photo',
+            })
+            .then((image)=>{
+                // console.log('Selected Image: ', image);
+                UUIDGenerator.getRandomUUID((uuid) => {
+                    const imageObj = {
+                        _id: uuid,
+                        uri: image.path
+                    };
+                    this.setState({images: [...this.state.images,imageObj]}
+                    )
+                })
+            })
+            .catch((e)=>console.log(e));
+        } else if (location === 'CAMERA') {
+            ImagePicker.openCamera({
+            multiple: false,
+            mediaType: 'photo',
+            })
+            .then((image)=>{
+                // console.log('Selected Image: ', image);
+                UUIDGenerator.getRandomUUID((uuid) => {
+                    const imageObj = {
+                        _id: uuid,
+                        uri: image.path
+                    };
+                    this.setState({images: [...this.state.images,imageObj]}
+                    )
+                })
+            })
+            .catch((e)=>console.log(e));
+        }
+    };
 
     filter = (item, query) => item.title.toLowerCase().includes(query.toLowerCase());
 
@@ -63,7 +125,7 @@ class AddWheatModal extends Component {
 
     render(){
         const { visible, toggleModal } = this.props;
-        const { farmers, sFarmer, fFarmers, keyboardSize, netWeight, pp, jute, billNo } = this.state;
+        const { farmers, sFarmer, fFarmers, keyboardSize, netWeight, pp, jute, billNo, images } = this.state;
         
         return(
             <KeyboardAvoidingView 
@@ -137,6 +199,28 @@ class AddWheatModal extends Component {
                                 placeholder='Enter Bill No.'
                                 onChangeText={nextValue => this.setState({billNo: nextValue})}
                             />
+                            <Text style={styles.lableStyle}>Bill Copy</Text>
+                            
+                            {
+                                images.length > 0 ?
+                                    <Images image={images}/>
+                                :
+                                    <TouchableOpacity 
+                                        style={styles.uploadBtn}
+                                        onPress={this.askFromWhereToPickImage}
+                                    >
+                                        <Icon 
+                                        style={{
+                                            width: 30, 
+                                            height: 30,
+                                            margin: 5
+                                        }} 
+                                        fill={BASE_COLOR} 
+                                        name='plus-circle-outline'
+                                    />
+                                        <Text style={[styles.lableStyle, {marginTop: 0, marginBottom: 5}]}>Upload Bill Copy</Text>
+                                    </TouchableOpacity> 
+                            }
                         </ScrollView>
                         <Button
                             style={{
@@ -157,6 +241,32 @@ class AddWheatModal extends Component {
             </KeyboardAvoidingView>
         )
     }
+}
+
+const Images = ({image}) => {
+    console.log('Image: ', image[0])
+    const currentImage = image[0]
+    return(
+        <View style={{flex: 1, backgroundColor: FIELD_BACK_COLOR}}>
+            <Image 
+                style={styles.image} 
+                source={{uri: currentImage.uri}}
+            />
+            {/* <TouchableOpacity 
+                style={[styles.closeButton, {width: 20, height: 20, backgroundColor:'red'}]}
+                // onPress={toggleModal}
+                >
+                <Icon 
+                    style={{
+                        width: 20, 
+                        height: 20
+                    }} 
+                    fill={BACK_COLOR} 
+                    name='close-outline'
+                />
+            </TouchableOpacity> */}
+        </View>
+    )
 }
 
 const styles = StyleSheet.create({
@@ -200,6 +310,22 @@ const styles = StyleSheet.create({
         fontWeight: 'bold', 
         marginTop: '5%',
         fontSize: DEAFULT_FONT_SIZE
+    },
+    uploadBtn: {
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: BASE_COLOR,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: FIELD_BACK_COLOR
+    },
+    image: {
+        height: 200,
+        width: 200,
+        alignSelf: 'center',
+        borderRadius: 10,
+        overflow: 'hidden',
     },
 })
 

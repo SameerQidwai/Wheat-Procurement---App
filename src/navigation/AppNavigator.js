@@ -51,7 +51,7 @@ class AppNavigator extends Component{
                 })}
             >
                 <Drawer.Screen name="Home" component={HomeScreen} />
-                <Drawer.Screen name="Parties" component={PartiesScreen} />
+                <Drawer.Screen name="Farmers" component={PartiesScreen} />
                 <Drawer.Screen name="Procure Wheat" component={WheatScreen} />
                 <Drawer.Screen name="Account Bardana" component={BardanaScreen} />
                 <Drawer.Screen name="Request Bardana" component={RequestBardana} />

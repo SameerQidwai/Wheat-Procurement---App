@@ -73,7 +73,7 @@ class PartiesScreen extends Component {
         return(
             <View style={styles.container}>
                 <View style={styles.content}>
-                    <Text style={styles.headingFont}>Parties</Text>
+                    <Text style={styles.headingFont}>Farmers</Text>
                     <View style={{marginVertical: 15}}>
                         <FarmerDetailsCard data={farmerDetails}/>
                     </View>

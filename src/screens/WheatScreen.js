@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, ScrollView,TouchableOpacity  } from 'react-native';
+import { View, StyleSheet, ScrollView,TouchableOpacity } from 'react-native';
 import { BACK_COLOR, BASE_COLOR, MAIN_HEADING } from '../../Global';
 import { Text } from '@ui-kitten/components';
 
@@ -63,6 +63,7 @@ class WheatScreen extends Component {
             modalVisible: false
         }
     }
+    
     render(){
         const { infoCardArray, farmerArray, modalVisible } = this.state;
         return(

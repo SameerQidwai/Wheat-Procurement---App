@@ -87,6 +87,7 @@ class HomeScreen extends Component {
             ]
         }
     }
+    
     render(){
         const { infoCardArray, farmerArray } = this.state;
 
