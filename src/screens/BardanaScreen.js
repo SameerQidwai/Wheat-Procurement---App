@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { BACK_COLOR, BASE_COLOR, MAIN_HEADING } from '../../Global';
+import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, ToastAndroid } from 'react-native';
+import { BACK_COLOR, BASE_COLOR, MAIN_HEADING, LOADING_GRAY_COLOR, GRAY_COLOR, HEADING } from '../../Global';
 import { Text, Icon } from '@ui-kitten/components';
 
 import InfoCard from '../components/InfoCard';
-import FarmerBardanaCard from '../components/FarmerBardanaCard';
+import RequestBardanaCard from '../components/RequestBardanaCard';
 import BardanaModal from './modals/BardanaModal';
+import BardanaOptionModal from './modals/BardanaOptionModal';
+import { getAllBardanas } from '../services/BardanaApi';
+import BardanaOptionModal2 from './modals/BardanaOptionModal2';
 
 class BardanaScreen extends Component {
     constructor(props){
@@ -13,8 +16,8 @@ class BardanaScreen extends Component {
         this.state = {
             infoCardArray: [
                 {
-                    heading: 'Bardana Procured (bela)',
-                    value: '1300/2500',
+                    heading: 'Bardana Procured',
+                    value: '13/25',
                     icon: 'refresh',
                     difference: '2.3%',
                     change: 'inc'
@@ -27,138 +30,190 @@ class BardanaScreen extends Component {
                     change: 'inc'
                 }
             ],
-            farmerArray: [
-                {
-                    name: 'Saleem Somroo',
-                    date: '01-10-2022',
-                    type: 'Jute',
-                    quantity: 50
-                },
-                {
-                    name: 'Anand Kumar',
-                    date: '01-10-2022',
-                    type: 'PP',
-                    quantity: 100
-                },
-                {
-                    name: 'Saleem Somroo',
-                    date: '01-10-2022',
-                    type: 'Jute',
-                    quantity: 50
-                },
-                {
-                    name: 'Anand Kumar',
-                    date: '01-10-2022',
-                    type: 'PP',
-                    quantity: 100
-                },
-                {
-                    name: 'Saleem Somroo',
-                    date: '01-10-2022',
-                    type: 'Jute',
-                    quantity: 50
-                },
-                {
-                    name: 'Anand Kumar',
-                    date: '01-10-2022',
-                    type: 'PP',
-                    quantity: 100
-                },
-
-            ],
+            farmerArray: [],
+            optionModal: false,
+            optionModal2: false,
             modalVisible: false,
-            modalType: ''
+            modalType: '',
+            receiveFrom: '',
+            recordId: '',
+            type: '',
+            loading: false,
+            isEditable: true
         }
     }
+
+    componentDidMount(){
+        this.getData()
+    }
+
+    getData(){
+        this.setState({loading: true})
+        getAllBardanas()
+        .then((res)=> {
+            if(res.success){
+                this.setState({farmerArray: res.data, loading: false})
+            }
+            else{
+                ToastAndroid.show(res.message, ToastAndroid.LONG)
+                this.setState({loading: false})
+            }
+        })
+    }
+
     render(){
-        const { infoCardArray, farmerArray, modalVisible, modalType } = this.state;
+        const { type, infoCardArray, farmerArray, modalVisible, modalType, optionModal,optionModal2, receiveFrom,recordId, loading,isEditable } = this.state;
+        console.log('R-ID: ', recordId)
+        console.log('Edit: ', isEditable)
         return(
             <View style={styles.container}>
                 <View style={styles.content}>
                     <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                        <Text style={styles.headingFont}>Procure Bardana</Text>
-                        <View style={{flexDirection: 'row'}}>
-                            <TouchableOpacity 
-                                onPress={()=>this.toggleModalState('Return')}
-                                style={{alignItems: 'center'}}
-                            >
-                                <View style={{
-                                    width: 30, 
-                                    height: 30,
-                                    backgroundColor: 'red',
-                                    borderRadius: 50,
-                                    
-                                }}>
-                                    <Icon 
-                                        style={{
-                                        width: 30, 
-                                        height: 30,                                    
-                                        }} 
-                                        fill={BACK_COLOR} 
-                                        name='close-circle-outline'
-                                    />
-                                </View>
-                                <Text style={{color: 'red'}}>Return</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity 
-                                style={{marginLeft: 30, alignItems: 'center'}}
-                                onPress={()=>this.toggleModalState('Issue')}
-                            >
-                                <View style={{
-                                    width: 30, 
-                                    height: 30,
-                                    backgroundColor: 'green',
-                                    borderRadius: 50
-                                }}>
-                                    <Icon 
-                                        style={{
-                                        width: 30, 
-                                        height: 30
-                                        }} 
-                                        fill={BACK_COLOR} 
-                                        name='plus-circle-outline'
-                                    />
-                                </View>
-                                <Text style={{color: 'green'}}>Issue</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <Text style={styles.headingFont}>Bardana</Text>
+                        <TouchableOpacity
+                            onPress={()=>this.toggleOptionModalState()}
+                        >
+                            <Icon 
+                                style={{
+                                width: 30, 
+                                height: 30,                                    
+                                }} 
+                                fill={BASE_COLOR} 
+                                name='more-vertical-outline'
+                            />
+                        </TouchableOpacity>
                     </View>
                     <ScrollView style={{marginTop: 15}} showsVerticalScrollIndicator={false}>
                         <View>
-                            <InfoCard data={infoCardArray} horizontal={false}/>
+                            <InfoCard data={infoCardArray} horizontal={true}/>
                         </View>
 
                         <View >
-                            <FarmerBardanaCard data={farmerArray}/>
+                            {
+                                farmerArray.length > 0 ?
+                                <RequestBardanaCard 
+                                    data={farmerArray}
+                                    optionModal={this.toggleOptionModalState2}
+                                /> : 
+                                <EmptyList/>
+                            }
                         </View>
                     </ScrollView>
                     {modalVisible &&
                         <BardanaModal
                             visible={modalVisible}
-                            toggleModal={this.toggleModalState}
+                            toggleModal={this.closeAllModals}
                             type={modalType}
+                            modalType={type}
+                            receiveFrom={receiveFrom}
+                            recordId={recordId}
+                        />
+                    }
+                    {optionModal &&
+                        <BardanaOptionModal
+                            visible={optionModal}
+                            toggleModal={this.toggleOptionModalState}
+                            toggleOptionsModal={this.toggleModalState}  
+                        />
+                    }
+                    {optionModal2 &&
+                        <BardanaOptionModal2
+                            visible={optionModal2}
+                            toggleModal={this.closeAllModals}
+                            showSelectedModal={this.showSelectedModal}
+                            isEditable={isEditable}
                         />
                     }
                 </View>
-                {/* <TouchableOpacity 
-                    style={styles.floatingButton}
-                    onPress={this.toggleModalState}
-                >
-                        <Text style={styles.fbText}>+</Text>
-                </TouchableOpacity> */}
+                {
+                    loading ?
+                    <View style={[{alignItems: 'center', justifyContent: 'center', backgroundColor: LOADING_GRAY_COLOR},StyleSheet.absoluteFill]}>
+                        <ActivityIndicator size='large' color= 'white'/>
+                        <Text style={{color: 'white', fontWeight: 'bold'}}>Please Wait...</Text>
+                    </View> :
+                    null
+                    }
             </View>
         )
     }
 
-    toggleModalState = (type) =>{
-        const { modalVisible } = this.state
+    toggleOptionModalState = () =>{
+        const { optionModal } = this.state
         this.setState({
-            modalVisible: !modalVisible,
-            modalType: type
+            optionModal: !optionModal
         })
+        this.getData()
+    }
+    toggleOptionModalState2 = (sender, id, type, isEditable) =>{
+        const { optionModal2 } = this.state
+        this.setState({
+            optionModal2: !optionModal2,
+            receiveFrom: sender,
+            recordId: id,
+            type: type,
+            isEditable
+        })
+        this.getData()
+    }
+
+    toggleModalState = (type) =>{
+        const { modalVisible, optionModal } = this.state
+        this.setState({
+            optionModal: false,
+            modalVisible: !modalVisible,
+            modalType: type,
+            // receiveFrom: from
+        })
+        this.getData()
+    }
+    closeAllModals = () => {
+        this.setState({
+            modalVisible: false,
+            optionModal: false,
+            optionModal2: false,
+            recordId: '',
+            receiveFrom: '',
+            modalType: ''
+        })
+        this.getData()
+    }
+
+    showSelectedModal = (type) =>{
+        if(type == 'Edit'){
+            this.setState({
+                optionModal2: false,
+                modalVisible: true,
+                modalType: type,
+            })
+        }
+        this.getData()
     }
 };
+
+const EmptyList = () => {
+    return(
+        <View style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: 40
+        }}>
+            <Icon 
+                style={{
+                width: 200, 
+                height: 200,
+
+                }} 
+                fill={GRAY_COLOR} 
+                name='archive-outline'
+            />
+            <Text style={{
+                fontSize: HEADING, 
+                color: GRAY_COLOR,
+                fontWeight: 'bold' 
+                }}>No Bardana Record Available...</Text>
+        </View>
+    )
+}
 
 const styles = StyleSheet.create({
     container: {

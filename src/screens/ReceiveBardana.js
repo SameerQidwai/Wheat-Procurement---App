@@ -38,7 +38,7 @@ class ReceiveBardana extends Component {
                                 placeholder='Value'
                                 onChangeText={nextValue => this.setState({juteBags: nextValue})}
                             />
-                            <Input
+                            {/* <Input
                                 multiline= {true}
                                 textStyle={{ minHeight: 65, maxHeight: 65 }}
                                 value={remarks}
@@ -47,7 +47,7 @@ class ReceiveBardana extends Component {
                                 )}}
                                 placeholder='Enter Remarks'
                                 onChangeText={nextValue => this.setState({remarks: nextValue})}
-                            />
+                            /> */}
                         </ScrollView>
                         <Button
                             style={styles.btnStyle}

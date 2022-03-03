@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { BACK_COLOR, BLUE_PIE_COLOR, MAIN_HEADING, RED_PIE_COLOR } from '../../Global';
+import { View, StyleSheet, ScrollView, ActivityIndicator, ToastAndroid } from 'react-native';
+import { BACK_COLOR, BASE_COLOR, BLUE_PIE_COLOR, GRAY_COLOR, LOADING_GRAY_COLOR, MAIN_HEADING, RED_PIE_COLOR } from '../../Global';
 import { Text } from '@ui-kitten/components';
 
 import InfoCard from '../components/InfoCard';
 import BreakdownPieChart from '../components/BreakdownPieChart';
 import FarmerWheatCard from '../components/FarmerWheatCard';
+import { getWheatRecords } from '../services/WheatApi';
+import { getStats } from '../services/HomeApi';
 
 class HomeScreen extends Component {
     constructor(props){
@@ -14,85 +16,71 @@ class HomeScreen extends Component {
             infoCardArray: [
                 {
                     heading: 'Total Target',
-                    value: '14k',
-                    icon: 'refresh',
-                    difference: '2.3%',
+                    value: 1,
+                    icon: 'bookmark',
+                    difference: '100%',
                     change: 'inc'
                 },
                 {
                     heading: 'Total Wheat Collected',
-                    value: '56%',
-                    icon: 'percent',
-                    difference: '2.1%',
+                    value: 1,
+                    icon: 'award',
+                    difference: '100%',
                     change: 'inc'
                 },
-                {
-                    heading: 'Total Revenues',
-                    value: '$768,342',
-                    icon: 'briefcase',
-                    difference: '2.3%',
-                    change: 'dec'
-                },
-                {
-                    heading: 'Total Users',
-                    value: '20k',
-                    icon: 'people-outline',
-                    difference: '1.3%',
-                    change: 'inc'
-                }
             ],
-            farmerArray: [
-                {
-                    name: 'Saleem Somroo',
-                    date: '01-10-2022',
-                    bags: 23,
-                    nw: 190,
-                    gw: 200
-                },
-                {
-                    name: 'Saif Arslan',
-                    date: '02-10-2022',
-                    bags: 25,
-                    nw: 200,
-                    gw: 210
-                },
-                {
-                    name: 'Saleem Somroo',
-                    date: '01-10-2022',
-                    bags: 23,
-                    nw: 190,
-                    gw: 200
-                },
-                {
-                    name: 'Saif Arslan',
-                    date: '02-10-2022',
-                    bags: 25,
-                    nw: 200,
-                    gw: 210
-                },
-                {
-                    name: 'Saleem Somroo',
-                    date: '01-10-2022',
-                    bags: 23,
-                    nw: 190,
-                    gw: 200
-                },
-                {
-                    name: 'Saif Arslan',
-                    date: '02-10-2022',
-                    bags: 25,
-                    nw: 200,
-                    gw: 210
-                },
-            ]
+            farmerArray: [],
+            loading: true
         }
+    }
+
+    componentDidMount(){
+        this.getData()
+    }
+
+    getData(){
+        const { infoCardArray } = this.state;
+        getWheatRecords()
+        .then((res) => {
+            if(res.success){
+                this.setState({farmerArray: res.data, loading: false})
+            }else{
+                ToastAndroid.show(res.message, ToastAndroid.LONG)
+                this.setState({loading: false})
+            }
+        })
+        .catch((err)=> {
+            console.log('[Err]: ', err)
+        })
+
+        getStats()
+        .then((res) => {
+            if(res.success){
+                infoCardArray[0].value = res.data.wheatTarget/1000;
+                infoCardArray[1].value = (res.data.wheatAchieved/1000);
+
+                this.setState({infoCardArray: infoCardArray})
+            }
+        })
     }
     
     render(){
-        const { infoCardArray, farmerArray } = this.state;
+        const { infoCardArray, farmerArray, loading } = this.state;
+        const totalTarget = infoCardArray[0].value
+        const achievedTarget = infoCardArray[1].value
+        const leftTarget = totalTarget - achievedTarget;
+        const achiveTargetPerc = (achievedTarget/totalTarget)*100
+        const leftTargetPerc = (leftTarget/totalTarget)*100
 
-        const series = [75, 25]
-        const sliceColor = [BLUE_PIE_COLOR, RED_PIE_COLOR]
+        let series = [];
+        if(achiveTargetPerc == NaN || leftTargetPerc == NaN) 
+        {
+            series = [0,0]
+        } else 
+        {
+            series =[parseFloat(achiveTargetPerc.toFixed(2)), parseFloat(leftTargetPerc.toFixed(2))]
+        }
+        const sliceColor = [BASE_COLOR, RED_PIE_COLOR]
         return(
             <View style={styles.container}>
                 <View style={styles.content}>
@@ -102,19 +90,31 @@ class HomeScreen extends Component {
                         <View>
                             <InfoCard data={infoCardArray} horizontal={true}/>
                         </View>
-                        
+                    
                         <View>
                             <BreakdownPieChart
                                 series={series}
                                 sliceColor={sliceColor}
                             />
                         </View>
-
-                        <View >
+                        {/* <View >
                             <FarmerWheatCard data={farmerArray} />
+                        </View> */}
+                        {/* {loading &&
+                        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+                            <ActivityIndicator size='large'/>
                         </View>
+                        } */}
                     </ScrollView>
                 </View>
+                {
+                    loading ?
+                    <View style={[{alignItems: 'center', justifyContent: 'center', backgroundColor: LOADING_GRAY_COLOR},StyleSheet.absoluteFill]}>
+                        <ActivityIndicator size='large' color= 'white'/>
+                        <Text style={{color: 'white', fontWeight: 'bold'}}>Fetching Stats...</Text>
+                    </View> :
+                    null
+                }
             </View>
         )
     }

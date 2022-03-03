@@ -8,12 +8,18 @@ import {
     Platform, 
     Keyboard, 
     Alert,
-    Image
+    Image,
+    ToastAndroid,
+    ActivityIndicator
 } from 'react-native';
-import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, FIELD_BACK_COLOR, MAIN_HEADING } from '../../../Global';
+import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, FIELD_BACK_COLOR, MAIN_HEADING, LOADING_GRAY_COLOR } from '../../../Global';
 import { Text, Icon, Input, Button, Autocomplete, AutocompleteItem, Modal } from '@ui-kitten/components';
 import ImagePicker from 'react-native-image-crop-picker';
 import UUIDGenerator from 'react-native-uuid-generator';
+import { 
+    searchFarmerCnic,
+} from '../../services/BardanaApi';
+import { addProcureWheat, getWheatRecordById, updateWheatRecord } from '../../services/WheatApi';
 
 class AddWheatModal extends Component {
     constructor(props){
@@ -21,22 +27,43 @@ class AddWheatModal extends Component {
         this.state = {
             keyboardSize: 0,
             farmers: [
-                { title: 'Samir' },
-                { title: 'Soahil' },
-                { title: 'Trun' },
-                { title: 'Kashif' },
+                // { 
+                //     title: 'Samir',
+                //     cnic: '42301-2548522-4' 
+                // },
+                // { 
+                //     title: 'Soahil',
+                //     cnic: '42301-2548522-4' 
+                // },
+                // { 
+                //     title: 'Trun',
+                //     cnic: '42301-2548522-4' 
+                // },
+                // { 
+                //     title: 'Kashif',
+                //     cnic: '42301-2548522-4' 
+                // },
             ],
             fFarmers: [],
             sFarmer: null,
+            sFarmerName: '',
+            sFarmerId: '',
             netWeight: '',
             pp: '',
             jute: '',
             billNo: '',
-            images: []
+            images: [],
+            loading: false,
+            farmerError: false,
+            netWeightError: false,
+            ppError: false,
+            juteError: false,
+            billNoError: false
         }
     }
 
     componentDidMount(){
+        const {recordId} = this.props
         Keyboard.addListener("keyboardDidShow", (e) => {
             this.setState({keyboardSize: e.endCoordinates.height})
         });
@@ -44,6 +71,9 @@ class AddWheatModal extends Component {
         Keyboard.addListener("keyboardDidHide", (e) => {
             this.setState({keyboardSize: e.endCoordinates.height})
         });
+        if(recordId){
+            this.getRecordById(recordId)
+        }
     }
 
     componentWillUnmount(){
@@ -101,32 +131,160 @@ class AddWheatModal extends Component {
         }
     };
 
-    filter = (item, query) => item.title.toLowerCase().includes(query.toLowerCase());
-
     onSelect = (index) => {
-        const { farmers } = this.state;
-        this.setState({sFarmer: farmers[index].title})
+        const { fFarmers } = this.state;
+        this.setState({
+            sFarmer: fFarmers[index].cnic,
+            sFarmerName: fFarmers[index].name,
+            sFarmerId: fFarmers[index].id
+        })
     };
     
     onChangeText = (query) => {
-        const { farmers } = this.state;
         this.setState({
             sFarmer: query,
-            fFarmers: farmers.filter(item => this.filter(item, query))
         })
+        if(query.length > 3){
+            searchFarmerCnic(query)
+            .then((res) => {
+                // console.log('[RES]: ', res.data)
+                this.setState({fFarmers: res.data, sFarmerName: ''})
+            })
+        }
+        else{
+            this.setState({fFarmers: [], sFarmerName: ''})
+        }
     };
     
     renderOption = (item, index) => (
         <AutocompleteItem
+            style={{backgroundColor: '#dadce6'}}
             key={index+''}
-            title={item.title}
+            title={()=>(
+                <View style={{borderBottomWidth: 0.5, borderColor: BASE_COLOR}}>
+                    <Text >{item.name}</Text>
+                    <Text style={{fontSize: 10}}>{item.cnic}</Text>
+                </View>
+            )}
         />
     );
 
+    addWheatProcure(){
+        const {toggleModal} = this.props
+        const { sFarmerId, pp, jute, netWeight, billNo } = this.state
+        const validateForm = this.validateForm()
+        if(validateForm){
+            this.setState({loading: true})
+            addProcureWheat(sFarmerId, pp, jute, netWeight, billNo)
+            .then((res)=>{
+                if(res.success){
+                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    this.setState({loading: false})
+                    toggleModal();
+                }
+                else{
+                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    this.setState({loading: false})
+                }
+            })
+            .catch((err)=>{
+                console.log('[ERR]: ', err)
+            })
+        }
+    }
+    
+    getRecordById(id){
+        this.setState({loading: true})
+        getWheatRecordById(id)
+        .then((res) => {
+            if(res.success){
+                this.setState({
+                    sFarmerId: res.data.vendorId,
+                    sFarmer: res.data.cnic,
+                    sFarmerName: res.data.name,
+                    netWeight: (res.data.wheatWeight).toString(),
+                    pp: (res.data.bardanaPP).toString(),
+                    jute: (res.data.bardanaJutt).toString(),
+                    billNo: res.data.billNo,
+                    loading: false
+                })
+            }
+            else{
+                ToastAndroid.show(res.message, ToastAndroid.LONG)
+                this.setState({loading: false})
+            }
+        })
+    }
+
+    updateWheatProcure(){
+        const {toggleModal, recordId} = this.props
+        const { sFarmerId, pp, jute, netWeight, billNo } = this.state
+        const validateForm = this.validateForm()
+        if(validateForm){
+            this.setState({loading: true})
+            updateWheatRecord(recordId, sFarmerId, pp, jute, netWeight, billNo)
+            .then((res)=>{
+                if(res.success){
+                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    this.setState({loading: false})
+                    toggleModal();
+                }
+                else{
+                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    this.setState({loading: false})
+                }
+            })
+            .catch((err)=>{
+                console.log('[ERR]: ', err)
+            })
+        }
+    }
+
+    validateForm(){
+        const {sFarmer, netWeight, pp, jute, billNo} = this.state;
+        if(sFarmer && netWeight && pp && jute && billNo){
+            this.setState({
+                farmerError: false,
+                netWeightError: false,
+                ppError: false,
+                juteError: false,
+                billNoError: false
+            })
+            return true
+        }
+        else{
+            if(!sFarmer){
+                this.setState({farmerError: true})
+            } else {
+                this.setState({farmerError: false})
+            }
+            if(!netWeight){
+                this.setState({netWeightError: true})
+            } else {
+                this.setState({netWeightError: false})
+            }
+            if(!pp){
+                this.setState({ppError: true})
+            } else {
+                this.setState({ppError: false})
+            }
+            if(!jute){
+                this.setState({juteError: true})
+            } else {
+                this.setState({juteError: false})
+            }
+            if(!billNo){
+                this.setState({billNoError: true})
+            } else {
+                this.setState({billNoError: false})
+            }
+        }
+    }
+
     render(){
-        const { visible, toggleModal } = this.props;
-        const { farmers, sFarmer, fFarmers, keyboardSize, netWeight, pp, jute, billNo, images } = this.state;
-        
+        const { visible, toggleModal,type } = this.props;
+        const { farmers, sFarmer, fFarmers, keyboardSize, netWeight, pp, jute, billNo, images, sFarmerName, loading, farmerError, netWeightError, ppError, juteError, billNoError} = this.state;
+        // console.log('TYPE: ', type)
         return(
             <KeyboardAvoidingView 
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -154,13 +312,21 @@ class AddWheatModal extends Component {
                         <View style={{alignItems: 'center'}}>
                             <Text style={styles.modalHeader}>Procure Wheat</Text>
                         </View>
-                        <ScrollView style={{maxHeight: '90%'}} showsVerticalScrollIndicator={false}>
+                        <ScrollView style={{maxHeight: '90%'}} 
+                        // showsVerticalScrollIndicator={false}
+                        >
                             <Autocomplete
                                 label={()=>{return(
-                                    <Text style={styles.lableStyle}>Farmer</Text>
+                                    <Text style={styles.lableStyle}>{sFarmerName? 'Farmer ('+sFarmerName+')' : 'Farmer'}</Text>
                                 )}}
+                                caption={()=>(
+                                    farmerError ?
+                                        <Text style={styles.captionText}>Farmer Required</Text>
+                                    : null
+                                )}
                                 placeholder='Select Grower'
                                 value={sFarmer}
+                                keyboardType='number-pad'
                                 onSelect={this.onSelect}
                                 onChangeText={this.onChangeText}>
                                 {fFarmers.map(this.renderOption)}
@@ -168,8 +334,14 @@ class AddWheatModal extends Component {
                             <Input
                                 value={netWeight}
                                 label={()=>{return(
-                                    <Text style={styles.lableStyle}>Net Weight</Text>
+                                    <Text style={styles.lableStyle}>Net Weight (kg)</Text>
                                 )}}
+                                caption={()=>(
+                                    netWeightError ?
+                                        <Text style={styles.captionText}>Net Weight Required</Text>
+                                    : null
+                                )}
+                                keyboardType='number-pad'
                                 placeholder='Enter Weight'
                                 onChangeText={nextValue => this.setState({netWeight: nextValue})}
                             />
@@ -178,6 +350,11 @@ class AddWheatModal extends Component {
                                 label={()=>{return(
                                     <Text style={styles.lableStyle}>No. of bags (PP)</Text>
                                 )}}
+                                caption={()=>(
+                                    ppError ?
+                                        <Text style={styles.captionText}>No. of Bags Required</Text>
+                                    : null
+                                )}
                                 keyboardType='number-pad'
                                 placeholder='Value'
                                 onChangeText={nextValue => this.setState({pp: nextValue})}
@@ -187,6 +364,11 @@ class AddWheatModal extends Component {
                                 label={()=>{return(
                                     <Text style={styles.lableStyle}>No. of Bags (Jute)</Text>
                                 )}}
+                                caption={()=>(
+                                    juteError ?
+                                        <Text style={styles.captionText}>No. of Bags Required</Text>
+                                    : null
+                                )}
                                 keyboardType='number-pad'
                                 placeholder='Value'
                                 onChangeText={nextValue => this.setState({jute: nextValue})}
@@ -196,6 +378,11 @@ class AddWheatModal extends Component {
                                 label={()=>{return(
                                     <Text style={styles.lableStyle}>Bill Number</Text>
                                 )}}
+                                caption={()=>(
+                                    billNoError ?
+                                        <Text style={styles.captionText}>Bill No. Required</Text>
+                                    : null
+                                )}
                                 placeholder='Enter Bill No.'
                                 onChangeText={nextValue => this.setState({billNo: nextValue})}
                             />
@@ -222,7 +409,7 @@ class AddWheatModal extends Component {
                                     </TouchableOpacity> 
                             }
                         </ScrollView>
-                        <Button
+                        {/* <Button
                             style={{
                                 borderRadius: 50,
                                 backgroundColor: BASE_COLOR,
@@ -232,9 +419,47 @@ class AddWheatModal extends Component {
                             appearance='outline'
                             size='medium'
                             status='control'
+                            onPress={()=>{
+                                type == 'Edit' ?
+                                this.updateWheatProcure():
+                                this.addWheatProcure()
+                            }}
                             >
-                            Add
-                        </Button>
+                            {type == 'Edit' ? 'Update':'Add'}
+                        </Button> */}
+                        <TouchableOpacity style={{
+                            borderRadius: 50,
+                            backgroundColor: BASE_COLOR,
+                            width: '100%',
+                            height: '10%',
+                            marginTop: '5%',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}
+                        onPress={()=>{
+                            type == 'Edit' ?
+                            this.updateWheatProcure():
+                            this.addWheatProcure()
+                        }}
+                        >
+                            <Text style={{color: 'white'}}>{type == 'Edit' ? 'Update':'Add'}</Text>
+                        </TouchableOpacity>
+                        {
+                            loading ?
+                            <View style={
+                                [
+                                    {alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    backgroundColor: LOADING_GRAY_COLOR,
+                                    borderRadius: 20
+                                    },
+                                    StyleSheet.absoluteFill
+                                ]}>
+                                <ActivityIndicator size='large' color= 'white'/>
+                                <Text style={{color: 'white', fontWeight: 'bold'}}>Please Wait...</Text>
+                            </View> :
+                            null
+                        }
                     </View>
                 </View>
             </Modal>
@@ -252,19 +477,6 @@ const Images = ({image}) => {
                 style={styles.image} 
                 source={{uri: currentImage.uri}}
             />
-            {/* <TouchableOpacity 
-                style={[styles.closeButton, {width: 20, height: 20, backgroundColor:'red'}]}
-                // onPress={toggleModal}
-                >
-                <Icon 
-                    style={{
-                        width: 20, 
-                        height: 20
-                    }} 
-                    fill={BACK_COLOR} 
-                    name='close-outline'
-                />
-            </TouchableOpacity> */}
         </View>
     )
 }
@@ -326,6 +538,11 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         borderRadius: 10,
         overflow: 'hidden',
+    },
+    captionText: {
+        fontSize: 12,
+        fontWeight: "400",
+        color: "red",
     },
 })
 

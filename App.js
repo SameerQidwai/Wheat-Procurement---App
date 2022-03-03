@@ -1,25 +1,55 @@
 import 'react-native-gesture-handler';
 import React, { Component } from 'react'
-import { PermissionsAndroid } from 'react-native';
+import { PermissionsAndroid, View, ActivityIndicator, Image, Text } from 'react-native';
 import * as eva from '@eva-design/eva';
 import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
 import { EvaIconsPack } from '@ui-kitten/eva-icons';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
-
-import LoginScreen from './src/screens/LoginScreen';
 import AppNavigator from './src/navigation/AppNavigator'
+import SplashScreen from 'react-native-splash-screen'
+import  AuthNavigator from './src/navigation/AuthNavigator'
+import LoginScreen from './src/screens/LoginScreen';
 
-export class App extends Component {
+class App extends Component {
   constructor(props){
     super(props);
+    this.getData();
     this.state = {
-      user : false
+      data: {},
+      loading: true
     }
   }
 
   componentDidMount(){
-      this.requestCameraPermission()
+    SplashScreen.hide();
+    this.requestCameraPermission();
+  }
+
+  getData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('@data')
+      if(jsonValue != null){
+        return(this.setState({
+          data: JSON.parse(jsonValue),
+          loading: false
+        }))
+      }else{
+        this.setState({data:{}, loading: false})
+      }
+    } catch(e) {
+      console.log('[ERR]: ', e)
+    }
+  }
+
+  removeData = async () =>{
+    try{
+      await AsyncStorage.removeItem('@data')
+      this.getData()
+    }
+    catch(e){
+      console.log('e ==> ', e)
+    }
   }
 
   requestCameraPermission = async () => {
@@ -36,18 +66,20 @@ export class App extends Component {
     }
   };
 
-  setUser = () => {
-    this.setState({user: true})
-  }
-
-  render() {
-    const { user } = this.state
-    return (
+  render(){
+    const { data, loading } = this.state;
+    // console.log('Data: ', data)
+    return(
       <>
         <IconRegistry icons={EvaIconsPack} />
         <ApplicationProvider {...eva} theme={eva.light}>
           <NavigationContainer>
-            {user ? <AppNavigator /> : <LoginScreen callback={this.setUser} />}
+            {/* {
+              loading ?
+              <Loading /> :
+              (data['token'] ? <AppNavigator/> : <AuthNavigator/>)
+            } */}
+            {data ? (data['token'] ? <AppNavigator institute={data.institute} removeData={this.removeData}/> : <LoginScreen setData={this.getData}/>) : <Loading/>}
           </NavigationContainer>
         </ApplicationProvider>
       </>
@@ -55,4 +87,16 @@ export class App extends Component {
   }
 }
 
+
 export default App;
+
+const Loading = () => (
+  <View style={{
+    flex: 1, 
+    justifyContent:'center',
+    alignItems: 'center'
+}}>
+    <Image style={{width: 200, height: 200}} source={require('./assets/FoodDept.png')}/>
+    <Text>Loading...</Text>
+</View>
+)

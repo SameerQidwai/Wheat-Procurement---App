@@ -8,21 +8,21 @@ const InfoCard = ({data, horizontal}) => {
         <ScrollView horizontal={horizontal} showsHorizontalScrollIndicator={!horizontal}>
         {
             data.map(({heading, value, icon, difference, change}, index) => (
-                <Card key={index+''} style={[styles.card, {width: horizontal ? 300 : '100%'}]}>
+                <Card key={index+''} style={[styles.card, {width: horizontal ? 275 : '100%'}]}>
                     <Text style={{fontSize: HEADING}}>{heading}</Text>
                     <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                         <Text style= {{
                             fontSize: BOLD_LARGE, 
                             fontWeight: 'bold', 
                             color: 'black'
-                            }}>{value}
+                            }}>{value} MT
                         </Text>
 
                         <View style={{
                             backgroundColor: BLUE_ICON_BACK,
                             borderRadius: 50,
-                            width: 50,
-                            height: 50,
+                            width: 40,
+                            height: 40,
                             justifyContent: 'center',
                             alignItems: 'center'
                         }}>
@@ -31,7 +31,7 @@ const InfoCard = ({data, horizontal}) => {
                                 width: 30, 
                                 height: 30
                                 }} 
-                                fill={BLUE_ICON_FORE} 
+                                fill={BASE_COLOR} 
                                 name={icon}
                             />
                         </View>
@@ -65,7 +65,8 @@ const styles = StyleSheet.create({
         shadowColor: BASE_COLOR,
         elevation: 10,
         marginRight: 15,
-        marginBottom: 15
+        marginBottom: 15,
+        height: 110
     },
 });
 

@@ -1,20 +1,69 @@
 import React, { Component } from 'react'
-import { View, StyleSheet, TouchableWithoutFeedback, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import axios from 'axios';
+import { 
+    View, 
+    StyleSheet, 
+    TouchableWithoutFeedback, 
+    ScrollView, 
+    KeyboardAvoidingView, 
+    Platform, 
+    Image, 
+    ActivityIndicator,
+} from 'react-native';
 import { Button, Card, Text, Input, Icon } from '@ui-kitten/components';
-import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, MAIN_HEADING } from '../../Global';
+import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, MAIN_HEADING, IP, GRAY_COLOR, LOADING_GRAY_COLOR } from '../../Global';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import AppNavigator from '../navigation/AppNavigator';
+// import FoodDept from '../../assets/FoodDept.jpeg'
 
 class LoginScreen extends Component {
     constructor(props){
         super(props);
         this.state = {
-            email: '',
+            username: '',
             password: '',
             secureTextEntry: true,
+            loading: false
         };
     }
 
+    storeData = async (value) => {
+        try {
+            const jsonValue = JSON.stringify(value)
+            await AsyncStorage.setItem('@data', jsonValue)
+            return
+        } catch (e) {
+            console.log('e --> ', e)
+        }
+    }
+
+    
+
+    login = async (props) => {
+        const {username, password} = this.state;
+        this.setState({loading: true})
+        if (username === '' || password === '') {
+            Alert.alert('', 'Please fill all the details correctly!');
+            return;
+        }
+
+        const link = `${IP}/login`;
+        console.log(link);
+        const body = {username, password};
+        
+        try {
+            const res = await axios.post(link, body);
+            const {institute, token} = res.data.data;
+            this.storeData({institute, token})
+            this.props.setData();
+            this.setState({loading: false})
+        } catch (e) {
+            console.error('e -> ', e.response.data.message);
+        }
+    };
+
     render() {
-        const { email, password, secureTextEntry } = this.state;
+        const { username, password, secureTextEntry, loading } = this.state;
         return (
             <View style={styles.container}>
                 <KeyboardAvoidingView
@@ -22,19 +71,30 @@ class LoginScreen extends Component {
                     style={styles.container}
                 >
                 <View style={styles.header}>
-                    <Icon style={{width: 50, height: 50}} fill='white' name='layers'/>
+                    <View style={{
+                        borderRadius: 20,
+                        backgroundColor: BACK_COLOR
+                    }}>
+                    <Image 
+                        style={{
+                            width: 100, 
+                            height: 100,
+                        }} 
+                        source={require('../../assets/FoodDept.png')}
+                    />
+                    </View>
                     <Text style={styles.headerTextStyle}>Wheat Procurement Sindh</Text>
                 </View>
                 
                 <Card style={styles.card} header={this.Header} footer={this.Footer}>
                     <ScrollView>
                     <Input
-                        value={email}
+                        value={username}
                         label={()=>{return(
-                            <Text style={styles.lableStyle}>Email</Text>
+                            <Text style={styles.lableStyle}>Username</Text>
                         )}}
                         placeholder='Enter email or username'
-                        onChangeText={nextValue => this.setState({email: nextValue})}
+                        onChangeText={nextValue => this.setState({username: nextValue})}
                     />
                     <Input
                         style={{marginTop: '5%'}}
@@ -47,15 +107,26 @@ class LoginScreen extends Component {
                         secureTextEntry={secureTextEntry}
                         onChangeText={nextValue => this.setState({password: nextValue})}
                     />
-                    {/* <View style={{
-                        flexDirection: 'row', 
-                        justifyContent: 'flex-end'
-                    }}>
-                        <Text appearance='hint'>Forgot Password?</Text>
-                    </View> */}
                     </ScrollView>
                 </Card>
                 </KeyboardAvoidingView>
+                <View style={{justifyContent: 'center', alignItems: 'center',margin: 15}}>
+                    <Image style={{
+                        width: 100, 
+                        height: 125,
+                        overflow: 'hidden',
+                        top: '-15%',
+                        position: 'relative',
+                    }} source={require('../../assets/SindhGovt.png')}/>
+                </View>
+                {
+                    loading ?
+                    <View style={[{alignItems: 'center', justifyContent: 'center', backgroundColor: LOADING_GRAY_COLOR},StyleSheet.absoluteFill]}>
+                        <ActivityIndicator size='large' color= 'white'/>
+                        <Text style={{color: 'white', fontWeight: 'bold'}}>Verifying User...</Text>
+                    </View> :
+                    null
+                }
             </View>
         )
     }
@@ -77,23 +148,26 @@ class LoginScreen extends Component {
         </TouchableWithoutFeedback>
     );
 
-    Footer = (props) => (
+    Footer = (props) => {
+        const { loading } = this.state;
+        return(
         <View {...props} style={props.style}>
             <Button
             style={{
                 borderRadius: 50,
-                backgroundColor: BASE_COLOR,
+                backgroundColor: loading ? GRAY_COLOR : BASE_COLOR,
                 // marginTop: '10%'
             }}
             appearance='outline'
             size='medium'
             status='control'
-            onPress={()=>this.props.callback()}
+            onPress={()=>this.login(this.props)}
             >
             Login
             </Button>
         </View>
-    );
+        )
+    };
 }
 
 const styles = StyleSheet.create({
@@ -118,7 +192,7 @@ const styles = StyleSheet.create({
         // flex: 1,
         marginHorizontal: '5%',
         zIndex: 1,
-        top: '-20%',
+        top: '-15%',
         position: 'relative',
         borderRadius: 30,
         shadowColor: BASE_COLOR,

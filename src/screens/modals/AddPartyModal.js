@@ -8,12 +8,15 @@ import {
     Platform, 
     Keyboard, 
     Alert, 
-    Image 
+    Image,
+    ToastAndroid,
+    ActivityIndicator
 } from 'react-native';
-import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, MAIN_HEADING, FIELD_BACK_COLOR } from '../../../Global';
+import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, MAIN_HEADING, FIELD_BACK_COLOR, GRAY_COLOR, LOADING_GRAY_COLOR } from '../../../Global';
 import { Text, Icon, Input, Button, Modal } from '@ui-kitten/components';
 import ImagePicker from 'react-native-image-crop-picker';
 import UUIDGenerator from 'react-native-uuid-generator';
+import { addFarmer, getFarmerById, updateFarmerById, uploadPicture } from '../../services/FarmerApi';
 
 class AddPartyModal extends Component {
     constructor(props){
@@ -26,13 +29,20 @@ class AddPartyModal extends Component {
             address: '',
             desc: '',
             keyboardSize: 0,
-            show: false,
-            show1: false,
-            images: []
+            contactError1: false,
+            cnicError1: false,
+            fNameError: false,
+            lNameError: false,
+            cnicError: false,
+            contactError: false,
+            addressError: false,
+            images: [],
+            loading: false
         }
     }
 
     componentDidMount(){
+        const { farmerId } = this.props;
         Keyboard.addListener("keyboardDidShow", (e) => {
             this.setState({keyboardSize: e.endCoordinates.height})
         })
@@ -40,6 +50,10 @@ class AddPartyModal extends Component {
         Keyboard.addListener("keyboardDidHide", (e) => {
             this.setState({keyboardSize: e.endCoordinates.height})
         })
+        if(farmerId){
+            this.setState({loading: true})
+            this.getFarmerDetails();
+        }
     }
 
     componentWillUnmount(){
@@ -70,7 +84,9 @@ class AddPartyModal extends Component {
                 UUIDGenerator.getRandomUUID((uuid) => {
                     const imageObj = {
                         _id: uuid,
-                        uri: image.path
+                        uri: image.path,
+                        mime: image.mime,
+                        size: image.size
                     };
                     this.setState({images: [...this.state.images,imageObj]}
                     )
@@ -87,7 +103,9 @@ class AddPartyModal extends Component {
                 UUIDGenerator.getRandomUUID((uuid) => {
                     const imageObj = {
                         _id: uuid,
-                        uri: image.path
+                        uri: image.path,
+                        mime: image.mime,
+                        size: image.size
                     };
                     this.setState({images: [...this.state.images,imageObj]}
                     )
@@ -104,7 +122,7 @@ class AddPartyModal extends Component {
         },
         () => {
             const result = regex.test(val);
-            result ? this.setState({show: false}) : this.setState({show: true})
+            result ? this.setState({contactError1: false}) : this.setState({contactError1: true})
         }
         )
     }
@@ -115,15 +133,150 @@ class AddPartyModal extends Component {
         this.setState({cnic: value},
             () => {
                 const result = regex.test(value);
-                result ? this.setState({show1: false}) : this.setState({show1: true})
+                result ? this.setState({cnicError1: false}) : this.setState({cnicError1: true})
             }
         )
     }
 
+    getFarmerDetails (){
+        const { farmerId } = this.props;
+        getFarmerById(farmerId)
+        .then((res)=>{
+            if(res.success){
+                this.setState({
+                    firstName: res.data.firstName,
+                    lastName: res.data.lastName,
+                    cnic: res.data.cnic,
+                    contact: res.data.phone,
+                    address: res.data.address,
+                    desc: res.data.description,
+                })
+                this.setState({loading: false})
+            }
+            else{
+                ToastAndroid.show(res.message, ToastAndroid.LONG)
+                this.setState({loading: false})
+            }
+            // this.setState({farmerDetails: res})
+        }).catch((err) => {
+            console.log('[ERR]: ', err)
+        })
+    }
+
+    validateForm(){
+        const {firstName, lastName, cnic, contact, address} = this.state
+        if(firstName && lastName && cnic && contact && address){
+            this.setState({
+                fNameError: false,
+                lNameError: false,
+                cnicError: false,
+                contactError: false,
+                addressError: false,
+            })
+            return true
+        }
+        else{
+            if(!firstName){
+                this.setState({fNameError: true})
+            }
+            else{
+                this.setState({fNameError: false})
+            }
+            if(!lastName){
+                this.setState({lNameError: true})
+            }
+            else{
+                this.setState({lNameError: false})
+            }
+            if(!cnic){
+                this.setState({cnicError: true})
+            }
+            else{
+                this.setState({cnicError: false})
+            }
+            if(!contact){
+                this.setState({contactError: true})
+            }
+            if(!address){
+                this.setState({addressError: true})
+            }
+            else{
+                this.setState({addressError: false})
+            }
+        }
+    }
+    
+    addNewFarmer(){
+        const { toggleModal } = this.props;
+        const {firstName, lastName, cnic, contact, address, desc} = this.state;
+        const validateForm = this.validateForm();
+        if(validateForm){
+            this.setState({loading: true})
+            addFarmer(firstName, lastName, cnic, contact, address, desc)
+            .then((res)=>{
+                if(res.success){
+                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    this.setState({loading: false})
+                    toggleModal();
+                }
+                else{
+                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    this.setState({loading: false})
+                }
+            })
+            .catch((err)=>{
+                console.log('[ERR]: ', err)
+            })
+        }
+    }
+
+    updateFarmer(){
+        const { toggleModal, farmerId } = this.props;
+        const {firstName, lastName, cnic, contact, address, desc} = this.state;
+        
+        const validateForm = this.validateForm();
+        if(validateForm){
+            this.setState({loading: true})
+            updateFarmerById(farmerId, firstName, lastName, cnic, contact, address, desc)
+            .then((res)=>{
+                if(res.success){
+                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    this.setState({loading: false})
+                    toggleModal();
+                }
+                else{
+                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    this.setState({loading: false})
+                }
+            })
+            .catch((err)=>{
+                console.log('[ERR]: ', err)
+            })
+        }
+    }
+
     render(){
-        const { visible, toggleModal } = this.props;
-        const { firstName, lastName, cnic, contact, address, desc, keyboardSize, show, images, show1 } = this.state;
+        const { visible, toggleModal, type, farmerId } = this.props;
+        const { 
+            firstName, 
+            lastName, 
+            cnic, 
+            contact, 
+            address, 
+            desc, 
+            keyboardSize, 
+            images, 
+            loading, 
+            fNameError, 
+            lNameError, 
+            cnicError1, 
+            contactError1, 
+            addressError, 
+            cnicError, 
+            contactError 
+        } = this.state;
         return(
+            <>
             <KeyboardAvoidingView 
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={{flex: 1}}
@@ -148,10 +301,9 @@ class AddPartyModal extends Component {
                             />
                         </TouchableOpacity>
                         <View style={{alignItems: 'center'}}>
-                        <Text style={styles.modalHeader}>Add Farmer</Text>
+                        <Text style={styles.modalHeader}>{farmerId ? 'Edit' : 'Add'} Farmer</Text>
                         </View>
-                        <ScrollView showsVerticalScrollIndicator={false}>
-                            {/* <Text style={styles.lableStyle}>Profile Picture</Text> */}
+                        <ScrollView>
                             {
                                 images.length > 0 ?
                                     <Images image={images}/>
@@ -177,6 +329,11 @@ class AddPartyModal extends Component {
                                 label={()=>{return(
                                     <Text style={styles.lableStyle}>First Name</Text>
                                 )}}
+                                caption={()=>(
+                                    fNameError ?
+                                        <Text style={styles.captionText}>First Name Required</Text>
+                                    : null
+                                )}
                                 placeholder='Enter First Name'
                                 onChangeText={nextValue => this.setState({firstName: nextValue})}
                             />
@@ -185,6 +342,11 @@ class AddPartyModal extends Component {
                                 label={()=>{return(
                                     <Text style={styles.lableStyle}>Last Name</Text>
                                 )}}
+                                caption={()=>(
+                                    lNameError ?
+                                        <Text style={styles.captionText}>Last Name Required</Text>
+                                    : null
+                                )}
                                 placeholder='Enter Last Name'
                                 onChangeText={nextValue => this.setState({lastName: nextValue})}
                             />
@@ -194,8 +356,11 @@ class AddPartyModal extends Component {
                                     <Text style={styles.lableStyle}>CNIC</Text>
                                 )}}
                                 placeholder='XXXXX-XXXXXXX-X'
+                                keyboardType='number-pad'
                                 caption={()=>(
-                                    show1 ?
+                                    cnicError ?
+                                    (<Text style={styles.captionText}>CNIC Required</Text>) :
+                                    cnicError1 ?
                                         <Text style={styles.captionText}>Should contain 13 numbers</Text>
                                     : null
                                 )}
@@ -207,11 +372,14 @@ class AddPartyModal extends Component {
                                     <Text style={styles.lableStyle}>Contact No</Text>
                                 )}}
                                 placeholder='3XX-XXXXXXX'
+                                keyboardType='number-pad'
                                 accessoryLeft={()=>(
                                     <Text>+92</Text>
                                 )}
                                 caption={()=>(
-                                    show ?
+                                    contactError ?
+                                    (<Text style={styles.captionText}>Contact No Required</Text>) :
+                                    contactError1 ?
                                         <Text style={styles.captionText}>Should start with 3 and contain 10 numbers</Text>
                                     : null
                                 )}
@@ -227,6 +395,11 @@ class AddPartyModal extends Component {
                                     <Text style={styles.lableStyle}>Address</Text>
                                 )}}
                                 placeholder='Enter Address'
+                                caption={()=>(
+                                    addressError ?
+                                        <Text style={styles.captionText}>Address Required</Text>
+                                    : null
+                                )}
                                 onChangeText={nextValue => this.setState({address: nextValue})}
                             />
                             <Input
@@ -240,23 +413,44 @@ class AddPartyModal extends Component {
                                 onChangeText={nextValue => this.setState({desc: nextValue})}
                             />
                         </ScrollView>
-                        <Button
-                            style={{
-                                borderRadius: 50,
-                                backgroundColor: BASE_COLOR,
-                                width: '100%',
-                                marginTop: '5%',
-                            }}
-                            appearance='outline'
-                            size='medium'
-                            status='control'
-                            >
-                            Add
-                        </Button>
+                        <TouchableOpacity style={{
+                            borderRadius: 50,
+                            backgroundColor: BASE_COLOR,
+                            width: '100%',
+                            height: '10%',
+                            marginTop: '5%',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}
+                        onPress={()=> {
+                            farmerId ?
+                            this.updateFarmer() :
+                            this.addNewFarmer()
+                        }}
+                        >
+                            <Text style={{color: 'white'}}>{farmerId ? 'Update' : 'Add'}</Text>
+                        </TouchableOpacity>
+                        {
+                            loading ?
+                            <View style={
+                                [
+                                    {alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    backgroundColor: LOADING_GRAY_COLOR,
+                                    borderRadius: 20
+                                    },
+                                    StyleSheet.absoluteFill
+                                ]}>
+                                <ActivityIndicator size='large' color= 'white'/>
+                                <Text style={{color: 'white', fontWeight: 'bold'}}>Please Wait...</Text>
+                            </View> :
+                            null
+                        }
                     </View>
                 </View>
             </Modal>
             </KeyboardAvoidingView>
+            </>
         )
     }
 }
@@ -270,19 +464,6 @@ const Images = ({image}) => {
                 style={styles.image} 
                 source={{uri: currentImage.uri}}
             />
-            {/* <TouchableOpacity 
-                style={[styles.closeButton, {width: 20, height: 20, backgroundColor:'red'}]}
-                // onPress={toggleModal}
-                >
-                <Icon 
-                    style={{
-                        width: 20, 
-                        height: 20
-                    }} 
-                    fill={BACK_COLOR} 
-                    name='close-outline'
-                />
-            </TouchableOpacity> */}
         </View>
     )
 }
