@@ -67,7 +67,7 @@ class AppNavigator extends Component{
                     drawerInactiveTintColor: 'white'
                 })}
             >
-                <Drawer.Screen name="Home" component={HomeScreen} />
+                <Drawer.Screen name="Dashboard" component={HomeScreen} />
                 <Drawer.Screen name="Farmers" component={PartiesScreen} />
                 <Drawer.Screen name="Bardana" component={BardanaScreen} />
                 <Drawer.Screen name="Wheat" component={WheatScreen} />

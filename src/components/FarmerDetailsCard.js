@@ -1,5 +1,5 @@
 import React from 'react';
-import { View , StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View , StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { BASE_COLOR, GRAY_COLOR, SUB_HEADING } from '../../Global';
 import { Card, Icon, Text } from '@ui-kitten/components';
 
@@ -7,7 +7,7 @@ const FarmerDetailsCard = ({data, optionModal}) => {
     return(
         <ScrollView showsVerticalScrollIndicator={false}>
         {
-            data.map(({id, name, cnic, bardanaPPRequested, bardanaJuttRequested}, index) => (
+            data.map(({id, name, cnic, bardanaPPRequested, bardanaJuttRequested, avatar}, index) => (
                 <Card key={index+''} style={styles.card}>
                     <View style={{flexDirection: 'row', alignItems: 'center'}}>
                         <View style={{flex: 2}}>
@@ -20,7 +20,8 @@ const FarmerDetailsCard = ({data, optionModal}) => {
                             justifyContent: 'center',
                             alignItems: 'center',
                             
-                        }}>
+                        }}>{
+                            avatar == null ?
                             <Icon 
                                 style={{
                                 width: 60, 
@@ -28,7 +29,11 @@ const FarmerDetailsCard = ({data, optionModal}) => {
                                 }} 
                                 fill='black' 
                                 name='person'
+                            /> :
+                            <Image style={styles.fg} 
+                                source={{uri: avatar}}
                             />
+                        }
                         </View>
                         </View>
                         <View style={{flex: 6}}>
@@ -45,7 +50,7 @@ const FarmerDetailsCard = ({data, optionModal}) => {
                                 justifyContent:'center',
                                 flex: 1,
                             }}
-                            onPress={()=>optionModal(id)}
+                            onPress={()=>optionModal(id, bardanaPPRequested, bardanaJuttRequested)}
                         >
                             <Icon 
                                 style={{
@@ -71,7 +76,11 @@ const styles = StyleSheet.create({
         shadowColor: BASE_COLOR,
         elevation: 10,
         marginBottom: 15,
-    }
+    },
+    fg:{
+        height: '100%',
+        width: '100%'
+    },
 });
 
 export default FarmerDetailsCard;

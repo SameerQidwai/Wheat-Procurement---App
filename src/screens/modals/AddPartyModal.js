@@ -10,7 +10,8 @@ import {
     Alert, 
     Image,
     ToastAndroid,
-    ActivityIndicator
+    ActivityIndicator,
+    TextInput
 } from 'react-native';
 import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, MAIN_HEADING, FIELD_BACK_COLOR, GRAY_COLOR, LOADING_GRAY_COLOR } from '../../../Global';
 import { Text, Icon, Input, Button, Modal } from '@ui-kitten/components';
@@ -51,7 +52,6 @@ class AddPartyModal extends Component {
             this.setState({keyboardSize: e.endCoordinates.height})
         })
         if(farmerId){
-            this.setState({loading: true})
             this.getFarmerDetails();
         }
     }
@@ -83,10 +83,9 @@ class AddPartyModal extends Component {
                 // console.log('Selected Image: ', image);
                 UUIDGenerator.getRandomUUID((uuid) => {
                     const imageObj = {
-                        _id: uuid,
                         uri: image.path,
-                        mime: image.mime,
-                        size: image.size
+                        name: image.path.replace(/^.*[\\\/]/, ''),
+                        type: image.mime,
                     };
                     this.setState({images: [...this.state.images,imageObj]}
                     )
@@ -102,10 +101,9 @@ class AddPartyModal extends Component {
                 // console.log('Selected Image: ', image);
                 UUIDGenerator.getRandomUUID((uuid) => {
                     const imageObj = {
-                        _id: uuid,
                         uri: image.path,
-                        mime: image.mime,
-                        size: image.size
+                        name: image.path.replace(/^.*[\\\/]/, ''),
+                        type: image.mime,
                     };
                     this.setState({images: [...this.state.images,imageObj]}
                     )
@@ -140,6 +138,7 @@ class AddPartyModal extends Component {
 
     getFarmerDetails (){
         const { farmerId } = this.props;
+        this.setState({loading: true})
         getFarmerById(farmerId)
         .then((res)=>{
             if(res.success){
@@ -154,7 +153,7 @@ class AddPartyModal extends Component {
                 this.setState({loading: false})
             }
             else{
-                ToastAndroid.show(res.message, ToastAndroid.LONG)
+                // ToastAndroid.show(res.message, ToastAndroid.LONG)
                 this.setState({loading: false})
             }
             // this.setState({farmerDetails: res})
@@ -164,7 +163,7 @@ class AddPartyModal extends Component {
     }
 
     validateForm(){
-        const {firstName, lastName, cnic, contact, address} = this.state
+        const {firstName, lastName, cnic, contact, address } = this.state
         if(firstName && lastName && cnic && contact && address){
             this.setState({
                 fNameError: false,
@@ -175,8 +174,7 @@ class AddPartyModal extends Component {
             })
             return true
         }
-        else{
-            if(!firstName){
+        else{if(!firstName){
                 this.setState({fNameError: true})
             }
             else{
@@ -208,25 +206,55 @@ class AddPartyModal extends Component {
     
     addNewFarmer(){
         const { toggleModal } = this.props;
-        const {firstName, lastName, cnic, contact, address, desc} = this.state;
+        const {firstName, lastName, cnic, contact, address, desc, images} = this.state;
         const validateForm = this.validateForm();
         if(validateForm){
             this.setState({loading: true})
-            addFarmer(firstName, lastName, cnic, contact, address, desc)
-            .then((res)=>{
-                if(res.success){
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                    toggleModal();
-                }
-                else{
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                }
-            })
-            .catch((err)=>{
-                console.log('[ERR]: ', err)
-            })
+            if(images.length > 0){
+                uploadPicture(images)
+                .then((res)=>{
+                    if(res.success){
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        // console.log('ID: ', res.data[0].id)
+                        addFarmer(firstName, lastName, cnic, contact, address, desc, res.data[0].id)
+                        .then((res)=>{
+                            if(res.success){
+                                ToastAndroid.show(res.message, ToastAndroid.LONG)
+                                this.setState({loading: false})
+                                toggleModal();
+                            }
+                            else{
+                                this.setState({loading: false})
+                            }
+                        })
+                        .catch((err)=>{
+                            console.log('[ERR]: ', err)
+                        })
+                    }
+                    else{
+                        this.setState({loading: false})
+                    }
+                })
+                .catch((err)=>{
+                    console.log('[ERR]: ', err)
+                })
+            }
+            else{
+                addFarmer(firstName, lastName, cnic, contact, address, desc, null)
+                .then((res)=>{
+                    if(res.success){
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({loading: false})
+                        toggleModal();
+                    }
+                    else{
+                        this.setState({loading: false})
+                    }
+                })
+                .catch((err)=>{
+                    console.log('[ERR]: ', err)
+                })
+            }
         }
     }
 
@@ -245,7 +273,7 @@ class AddPartyModal extends Component {
                     toggleModal();
                 }
                 else{
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
                     this.setState({loading: false})
                 }
             })
@@ -266,7 +294,7 @@ class AddPartyModal extends Component {
             desc, 
             keyboardSize, 
             images, 
-            loading, 
+            loading,
             fNameError, 
             lNameError, 
             cnicError1, 
@@ -334,6 +362,7 @@ class AddPartyModal extends Component {
                                         <Text style={styles.captionText}>First Name Required</Text>
                                     : null
                                 )}
+                                maxLength={25}
                                 placeholder='Enter First Name'
                                 onChangeText={nextValue => this.setState({firstName: nextValue})}
                             />
@@ -347,6 +376,7 @@ class AddPartyModal extends Component {
                                         <Text style={styles.captionText}>Last Name Required</Text>
                                     : null
                                 )}
+                                maxLength={25}
                                 placeholder='Enter Last Name'
                                 onChangeText={nextValue => this.setState({lastName: nextValue})}
                             />
@@ -357,6 +387,7 @@ class AddPartyModal extends Component {
                                 )}}
                                 placeholder='XXXXX-XXXXXXX-X'
                                 keyboardType='number-pad'
+                                maxLength={15}
                                 caption={()=>(
                                     cnicError ?
                                     (<Text style={styles.captionText}>CNIC Required</Text>) :
@@ -373,6 +404,7 @@ class AddPartyModal extends Component {
                                 )}}
                                 placeholder='3XX-XXXXXXX'
                                 keyboardType='number-pad'
+                                maxLength={10}
                                 accessoryLeft={()=>(
                                     <Text>+92</Text>
                                 )}
@@ -395,6 +427,7 @@ class AddPartyModal extends Component {
                                     <Text style={styles.lableStyle}>Address</Text>
                                 )}}
                                 placeholder='Enter Address'
+                                maxLength={150}
                                 caption={()=>(
                                     addressError ?
                                         <Text style={styles.captionText}>Address Required</Text>
@@ -410,6 +443,7 @@ class AddPartyModal extends Component {
                                 multiline={true}
                                 textStyle={{ minHeight: 65, maxHeight: 65 }}
                                 placeholder='Description'
+                                maxLength={150}
                                 onChangeText={nextValue => this.setState({desc: nextValue})}
                             />
                         </ScrollView>
@@ -456,7 +490,7 @@ class AddPartyModal extends Component {
 }
 
 const Images = ({image}) => {
-    console.log('Image: ', image[0])
+    // console.log('Image: ', image[0])
     const currentImage = image[0]
     return(
         <View style={{flex: 1, backgroundColor: FIELD_BACK_COLOR}}>

@@ -9,6 +9,8 @@ import {
     Platform, 
     Image, 
     ActivityIndicator,
+    ToastAndroid,
+    Alert
 } from 'react-native';
 import { Button, Card, Text, Input, Icon } from '@ui-kitten/components';
 import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, MAIN_HEADING, IP, GRAY_COLOR, LOADING_GRAY_COLOR } from '../../Global';
@@ -58,7 +60,10 @@ class LoginScreen extends Component {
             this.props.setData();
             this.setState({loading: false})
         } catch (e) {
-            console.error('e -> ', e.response.data.message);
+            this.setState({loading: false})
+            // ToastAndroid.show(e.response.data.message, ToastAndroid.TOP)
+            Alert.alert('', e.response.data.message);
+            console.log('e -> ', e.response.data.message);
         }
     };
 
@@ -110,7 +115,7 @@ class LoginScreen extends Component {
                     </ScrollView>
                 </Card>
                 </KeyboardAvoidingView>
-                <View style={{justifyContent: 'center', alignItems: 'center',margin: 15}}>
+                {/* <View style={{justifyContent: 'center', alignItems: 'center',margin: 15}}>
                     <Image style={{
                         width: 100, 
                         height: 125,
@@ -118,7 +123,7 @@ class LoginScreen extends Component {
                         top: '-15%',
                         position: 'relative',
                     }} source={require('../../assets/SindhGovt.png')}/>
-                </View>
+                </View> */}
                 {
                     loading ?
                     <View style={[{alignItems: 'center', justifyContent: 'center', backgroundColor: LOADING_GRAY_COLOR},StyleSheet.absoluteFill]}>

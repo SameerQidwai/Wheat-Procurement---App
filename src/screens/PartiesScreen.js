@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator, ToastAndroid } from 'react-native';
 import { BACK_COLOR, BASE_COLOR, GRAY_COLOR, HEADING, LOADING_GRAY_COLOR, MAIN_HEADING } from '../../Global';
-import { Text, Icon } from '@ui-kitten/components';
+import { Text, Icon, Input } from '@ui-kitten/components';
 
 import FarmerDetailsCard from '../components/FarmerDetailsCard';
 import AddPartyModal from './modals/AddPartyModal';
@@ -13,12 +13,15 @@ class PartiesScreen extends Component {
         super(props);
         this.state = {
             farmerDetails: [],
+            cnic: '',
             modalVisible: false,
             optionModal: false,
             reqBardana: false,
             modalType: '',
             farmerId: '',
-            loading: true
+            loading: true,
+            requestedPP: '',
+            requestedJute: ''
         }
     }
 
@@ -44,8 +47,9 @@ class PartiesScreen extends Component {
     }
 
 
+
     render(){
-        const { farmerId, farmerDetails, modalVisible, optionModal, modalType, reqBardana, loading } = this.state;
+        const { farmerId, farmerDetails, cnic, modalVisible, optionModal, modalType, reqBardana, loading, requestedPP, requestedJute } = this.state;
         return(
             <View style={styles.container}>
                 <View style={styles.content}>
@@ -73,11 +77,7 @@ class PartiesScreen extends Component {
                             <Text style={{color: BACK_COLOR, fontWeight: 'bold', marginLeft: 5}}>Add Farmer</Text>
                         </TouchableOpacity>
                     </View>
-                    {/* {loading &&
-                        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-                            <ActivityIndicator/>
-                        </View>
-                    } */}
+
                     <View style={{marginVertical: 15}}>
                         {
                             farmerDetails.length > 0 ? 
@@ -101,6 +101,7 @@ class PartiesScreen extends Component {
                             visible={optionModal}
                             toggleModal={this.closeAllModals}
                             showSelectedModal={this.showSelectedModal}
+                            farmerId={farmerId}
                         />
                     }
                     {reqBardana &&
@@ -109,6 +110,8 @@ class PartiesScreen extends Component {
                             toggleModal={this.closeAllModals}
                             type={modalType}
                             farmerId={farmerId}
+                            pp={requestedPP}
+                            jute={requestedJute}
                         />
                     }
                 </View>
@@ -144,9 +147,14 @@ class PartiesScreen extends Component {
         this.getData()
     }
 
-    toggleOptionModalState = (id) =>{
+    toggleOptionModalState = (id, pp, jute) =>{
         const { optionModal } = this.state
-        this.setState({optionModal: !optionModal, farmerId: id})
+        this.setState({
+            optionModal: !optionModal, 
+            farmerId: id,
+            requestedPP: pp.toString(),
+            requestedJute: jute.toString()
+        })
         this.getData()
     }
 

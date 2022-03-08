@@ -1,12 +1,34 @@
 import React, { Component } from 'react'
-import {View, StyleSheet, TouchableOpacity, Keyboard, ScrollView } from 'react-native';
+import {View, StyleSheet, TouchableOpacity, Keyboard, ScrollView, Alert, ToastAndroid } from 'react-native';
 import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, GRAY_COLOR } from '../../../Global';
 import { Icon, Text, Autocomplete, AutocompleteItem, Input, Modal, Button } from '@ui-kitten/components';
+import { deleteWheatById } from '../../services/WheatApi';
 
 
 class WheatOptionModal extends Component {
     constructor(props){
         super(props);
+    }
+
+    deleteWheat(){
+        const {recordId, toggleModal} = this.props
+        Alert.alert(
+            'Are you sure you want to delete this record?',
+            '',
+            [
+            {text: 'Yes', onPress: () => {
+                deleteWheatById(recordId)
+                .then((res)=>{
+                    if(res.success){
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        toggleModal();
+                    }
+                })
+            }},
+            {text: 'No', onPress: () => {}},
+            ],
+            {cancelable: true},
+        );
     }
 
     render(){
@@ -27,7 +49,7 @@ class WheatOptionModal extends Component {
                                 width: 30, 
                                 height: 30
                                 }} 
-                                fill={BACK_COLOR} 
+                                fill={BACK_COLOR}
                                 name='close-outline'
                             />
                         </TouchableOpacity>
@@ -57,7 +79,7 @@ class WheatOptionModal extends Component {
                                 null
                             }
                             <TouchableOpacity
-                                onPress={()=>{}}
+                                onPress={()=>{this.deleteWheat()}}
                                 style={{
                                     width: '80%',
                                     height: '30%',

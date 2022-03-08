@@ -23,7 +23,7 @@ export const getWheatRecords = async () => {
     }
 }
 
-export const addProcureWheat = async(vendor, bardanaPP, bardanaJutt, wheatWeight, billNo,billId) => {
+export const addProcureWheat = async(vendor, bardanaPP, bardanaJutt, wheatWeight, billNo, billId) => {
     const link = `${IP}/bardanas/submit`;
     const jsonValue = await AsyncStorage.getItem('@data')
     const token = "Bearer " + JSON.parse(jsonValue).token
@@ -39,7 +39,7 @@ export const addProcureWheat = async(vendor, bardanaPP, bardanaJutt, wheatWeight
         bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt, 
         wheatWeight, 
         billNo,
-        billId : 1
+        billId
     }
 
     try {
@@ -73,7 +73,7 @@ export const getWheatRecordById = async (id) => {
     }
 }
 
-export const updateWheatRecord = async(id, vendor, bardanaPP, bardanaJutt, wheatWeight, billNo,billId) => {
+export const updateWheatRecord = async(id, vendor, bardanaPP, bardanaJutt, wheatWeight, billNo, billId) => {
     const link = `${IP}/bardanas/submit/${id}`;
     const jsonValue = await AsyncStorage.getItem('@data')
     const token = "Bearer " + JSON.parse(jsonValue).token
@@ -89,7 +89,7 @@ export const updateWheatRecord = async(id, vendor, bardanaPP, bardanaJutt, wheat
         bardanaJutt: bardanaJutt == '' ? 0 : bardanaPP,
         wheatWeight, 
         billNo,
-        billId : 1
+        billId
     }
 
     try {
@@ -99,5 +99,27 @@ export const updateWheatRecord = async(id, vendor, bardanaPP, bardanaJutt, wheat
     } catch (e) {
         // console.error('e -> ', e.response.data.message);
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
+        return({success: false})
     }
+}
+
+export const deleteWheatById = async (id) => {
+    const link = `${IP}/bardanas/${id}`;
+    const jsonValue = await AsyncStorage.getItem('@data')
+    const token = "Bearer " + JSON.parse(jsonValue).token
+
+    const header = {
+        Authorization: token
+    }
+
+    try {
+        const res = await axios.delete(link, {headers: header})
+        // console.log('RES: ', res.data)
+        return(res.data)
+    } catch(e){
+        // console.error('e -> ', e.response.data.message);
+        ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
+        return({success: false})
+    }
+
 }

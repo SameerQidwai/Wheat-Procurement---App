@@ -5,12 +5,12 @@ import { Card, Icon, Text } from '@ui-kitten/components';
 
 const FarmerWheatCard = ({data, entries, optionModal}) => {
     return(
-        <View style={{maxHeight: 500}}>
-        {
+        <View style={{maxHeight: '95%'}}>
+        {/* {
             entries ?
             <Text style={styles.headingFont}>Records</Text> :
             <Text style={styles.headingFont}>Recent Wheat Procurement</Text>
-        }
+        } */}
         {
             data ? 
             <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>

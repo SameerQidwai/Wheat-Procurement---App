@@ -49,7 +49,7 @@ class OptionModal extends Component {
                                     marginBottom: 15
                                 }}
                             >
-                                <Text style={{color: BACK_COLOR, fontWeight: 'bold'}}>Receive From DFC</Text>
+                                <Text style={{color: BACK_COLOR, fontWeight: 'bold'}}>Receive From PRC</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={()=>toggleOptionsModal('Issue')}

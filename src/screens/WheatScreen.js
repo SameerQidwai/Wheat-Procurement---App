@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { View, StyleSheet, ScrollView,TouchableOpacity, ActivityIndicator } from 'react-native';
 import { BACK_COLOR, BASE_COLOR, MAIN_HEADING, LOADING_GRAY_COLOR, HEADING, GRAY_COLOR } from '../../Global';
-import { Text, Icon } from '@ui-kitten/components';
+import { Text, Icon, Input } from '@ui-kitten/components';
 
 import InfoCard from '../components/InfoCard';
 import FarmerWheatCard from '../components/FarmerWheatCard';
@@ -28,7 +28,9 @@ class WheatScreen extends Component {
                     change: 'inc'
                 }
             ],
+            cnic:'',
             farmerArray: [],
+            allFarmersArray: [],
             modalVisible: false,
             optionModal: false,
             loading: true,
@@ -47,7 +49,11 @@ class WheatScreen extends Component {
         getWheatRecords()
         .then((res) => {
             if(res.success){
-                this.setState({farmerArray: res.data, loading: false})
+                this.setState({
+                    farmerArray: res.data,
+                    allFarmersArray: res.data,
+                    loading: false
+                })
             }
             else{
                 ToastAndroid.show(res.message, ToastAndroid.LONG)
@@ -58,11 +64,34 @@ class WheatScreen extends Component {
             console.log('[Err]: ', err)
         })
     }
+
+    filterWheat(val){
+        const {farmerArray, allFarmersArray} = this.state
+        if(val == ''){
+            this.setState({
+                farmerArray: allFarmersArray,
+                cnic: val
+            })
+        }else{
+            this.setState({
+                cnic: val,
+                farmerArray: allFarmersArray.filter((farmer) => {
+                    console.log('FARMER: ', farmer)
+                    console.log('VAL: ', val)
+                    return(
+                        farmer.cnic ?
+                        farmer.cnic.replaceAll('-', '').includes(val) :
+                        null
+                    )
+                })
+            })
+        }
+    }
     
     render(){
-        const { infoCardArray, farmerArray, modalVisible, loading, optionModal, farmerId, modalType, recordId, isEditable } = this.state;
-        console.log('R-ID: ', recordId)
-        console.log('Edit: ', isEditable)
+        const { infoCardArray, farmerArray, modalVisible, loading, optionModal, farmerId, modalType, recordId, isEditable, cnic } = this.state;
+        // console.log('R-ID: ', recordId)
+        // console.log('Edit: ', isEditable)
         // console.log('M: ', modalType)
         return(
             <View style={styles.container}>
@@ -73,7 +102,8 @@ class WheatScreen extends Component {
                         onPress={this.toggleModalState} 
                         style={{
                             backgroundColor: BASE_COLOR,
-                            width: 150,
+                            // width: 150,
+                            paddingHorizontal: 15,
                             height: 30,
                             justifyContent: 'center',
                             alignItems: 'center',
@@ -91,11 +121,15 @@ class WheatScreen extends Component {
                             <Text style={{color: BACK_COLOR, fontWeight: 'bold', marginLeft: 5}}>Procure Wheat</Text>
                         </TouchableOpacity>
                     </View>
-                    <ScrollView style={{marginTop: 15}} showsVerticalScrollIndicator={false}>
-                        <View>
-                            <InfoCard data={infoCardArray} horizontal={true}/>
-                        </View>
-                        <View>
+                    {/* <ScrollView style={{marginTop: 15}} showsVerticalScrollIndicator={false}> */}
+                        <Input
+                            value={cnic}
+                            placeholder='XXXXX-XXXXXXX-X'
+                            keyboardType='number-pad'
+                            maxLength={13}
+                            onChangeText={nextValue => this.filterWheat(nextValue)}
+                        />
+                        <View style={{marginTop: 15}}>
                             {
                                 farmerArray.length > 0 ?
                                 <FarmerWheatCard 
@@ -106,7 +140,7 @@ class WheatScreen extends Component {
                                 <EmptyList/>
                             }
                         </View>
-                    </ScrollView>
+                    {/* </ScrollView> */}
                     {modalVisible &&
                         <AddWheatModal
                             visible={modalVisible}
@@ -121,6 +155,7 @@ class WheatScreen extends Component {
                             toggleModal={this.closeAllModals}
                             showSelectedModal={this.showSelectedModal}
                             isEditable={isEditable}
+                            recordId={recordId}
                         />
                     }
                 </View>

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, ScrollView, ActivityIndicator, ToastAndroid } from 'react-native';
+import { View, StyleSheet, ScrollView, ActivityIndicator, ToastAndroid, RefreshControl } from 'react-native';
 import { BACK_COLOR, BASE_COLOR, BLUE_PIE_COLOR, GRAY_COLOR, LOADING_GRAY_COLOR, MAIN_HEADING, RED_PIE_COLOR } from '../../Global';
 import { Text } from '@ui-kitten/components';
 
@@ -8,6 +8,7 @@ import BreakdownPieChart from '../components/BreakdownPieChart';
 import FarmerWheatCard from '../components/FarmerWheatCard';
 import { getWheatRecords } from '../services/WheatApi';
 import { getStats } from '../services/HomeApi';
+import BardanaDetailsCard from '../components/BardanaDetailCard';
 
 class HomeScreen extends Component {
     constructor(props){
@@ -18,19 +19,26 @@ class HomeScreen extends Component {
                     heading: 'Total Target',
                     value: 1,
                     icon: 'bookmark',
-                    difference: '100%',
-                    change: 'inc'
+                    difference: '100',
+                    change: 'inc',
+                    duration: 'year'
                 },
                 {
                     heading: 'Total Wheat Collected',
                     value: 1,
                     icon: 'award',
-                    difference: '100%',
-                    change: 'inc'
+                    difference: '100',
+                    change: 'inc',
+                    duration: 'week'
                 },
             ],
+            totalBags: {},
+            filledBags: {},
+            issuedBags: {},
+            availableBags: {},
             farmerArray: [],
-            loading: true
+            loading: true,
+            refreshing: false
         }
     }
 
@@ -40,37 +48,44 @@ class HomeScreen extends Component {
 
     getData(){
         const { infoCardArray } = this.state;
-        getWheatRecords()
+        Promise.all([getWheatRecords(), getStats()])
         .then((res) => {
-            if(res.success){
-                this.setState({farmerArray: res.data, loading: false})
-            }else{
-                ToastAndroid.show(res.message, ToastAndroid.LONG)
-                this.setState({loading: false})
+            // console.log('RES: ', res[1])
+            if(res[1].success){
+                infoCardArray[0].value = res[1].data.wheatTarget/1000;
+                infoCardArray[1].value = (res[1].data.wheatAchieved/1000);
+                infoCardArray[1].difference = Math.abs(parseFloat(res[1].data.wheatProgress.toFixed(2)))
+                infoCardArray[1].change = res[1].data.wheatProgress > 0 ? 'inc' : 'dec'
             }
+            this.setState({
+                farmerArray: res[0].success ? res[0].data : [],
+                totalBags: res[1].success ? res[1].data.totalBardana : null,
+                filledBags: res[1].success ? res[1].data.filledBardana : null,
+                issuedBags: res[1].success ? res[1].data.allocatedBardana : null,
+                availableBags: res[1].success ? res[1].data.emptyBardana : null,
+                infoCardArray: infoCardArray,
+                loading: false,
+                refreshing: false
+            })
         })
-        .catch((err)=> {
-            console.log('[Err]: ', err)
+        .catch((e) => {
+            console.log(e);
         })
+    }
 
-        getStats()
-        .then((res) => {
-            if(res.success){
-                infoCardArray[0].value = res.data.wheatTarget/1000;
-                infoCardArray[1].value = (res.data.wheatAchieved/1000);
-
-                this.setState({infoCardArray: infoCardArray})
-            }
-        })
+    onRefresh() {
+        this.setState({refreshing: true});
+        this.getData()
     }
     
     render(){
-        const { infoCardArray, farmerArray, loading } = this.state;
+        const { infoCardArray, farmerArray, loading, refreshing, totalBags, filledBags, issuedBags,availableBags } = this.state;
         const totalTarget = infoCardArray[0].value
         const achievedTarget = infoCardArray[1].value
         const leftTarget = totalTarget - achievedTarget;
         const achiveTargetPerc = (achievedTarget/totalTarget)*100
         const leftTargetPerc = (leftTarget/totalTarget)*100
+        // console.log('BAGS: ', totalBags)
 
         let series = [];
         if(achiveTargetPerc == NaN || leftTargetPerc == NaN) 
@@ -86,7 +101,16 @@ class HomeScreen extends Component {
                 <View style={styles.content}>
                     <Text style={styles.headingFont}>Dashboard</Text>
                     
-                    <ScrollView style={{marginTop: 15}} showsVerticalScrollIndicator={false}>
+                    <ScrollView 
+                        style={{marginTop: 15}} 
+                        showsVerticalScrollIndicator={false}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={this.onRefresh.bind(this)}
+                            />
+                        }
+                    >
                         <View>
                             <InfoCard data={infoCardArray} horizontal={true}/>
                         </View>
@@ -97,14 +121,14 @@ class HomeScreen extends Component {
                                 sliceColor={sliceColor}
                             />
                         </View>
-                        {/* <View >
-                            <FarmerWheatCard data={farmerArray} />
-                        </View> */}
-                        {/* {loading &&
-                        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-                            <ActivityIndicator size='large'/>
+                        <View>
+                            <BardanaDetailsCard
+                                totalBags={totalBags}
+                                filledBags={filledBags} 
+                                issuedBags={issuedBags}
+                                availableBags={availableBags}
+                            />
                         </View>
-                        } */}
                     </ScrollView>
                 </View>
                 {

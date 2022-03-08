@@ -19,12 +19,7 @@ class BardanaModal extends Component {
         super(props);
         this.state = {
             keyboardSize: 0,
-            farmers: [
-                // { title: 'Samir' },
-                // { title: 'Soahil' },
-                // { title: 'Trun' },
-                // { title: 'Kashif' },
-            ],
+            farmers: [],
             fFarmers: [],
             sFarmer: null,
             sFarmerName: '',
@@ -43,6 +38,7 @@ class BardanaModal extends Component {
     }
 
     componentDidMount(){
+        const {pp, jute } =this.props
         const {recordId} = this.props
         Keyboard.addListener("keyboardDidShow", (e) => {
             this.setState({keyboardSize: e.endCoordinates.height})
@@ -51,6 +47,9 @@ class BardanaModal extends Component {
         Keyboard.addListener("keyboardDidHide", (e) => {
             this.setState({keyboardSize: e.endCoordinates.height})
         })
+        if(pp || jute){
+            this.setState({pp, jute})
+        }
         if(recordId){
             this.getBardanaById()
         }
@@ -71,14 +70,14 @@ class BardanaModal extends Component {
     };
     
     onChangeText = (query) => {
-        console.log('Q: ', query)
+        // console.log('Q: ', query)
         this.setState({
             sFarmer: query,
         })
         if(query.length > 3){
             searchFarmerCnic(query)
             .then((res) => {
-                console.log('[RES]: ', res.data)
+                // console.log('[RES]: ', res.data)
                 this.setState({fFarmers: res.data, sFarmerName: ''})
             })
         }
@@ -104,10 +103,10 @@ class BardanaModal extends Component {
         const { farmerId, toggleModal} = this.props;
         const { pp, jute } = this.state
         const validateForm = this.validateForm();
-        console.log('Verifying')
+        // console.log('Verifying')
         if(validateForm){
             this.setState({loading: true})
-            console.log('Submitting')
+            // console.log('Submitting')
             requestBardanaForFarmer(farmerId, pp, jute)
             .then((res)=>{
                 if(res.success){
@@ -116,7 +115,7 @@ class BardanaModal extends Component {
                     toggleModal();
                 }
                 else{
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
                     this.setState({loading: false})
                 }
             })
@@ -140,7 +139,7 @@ class BardanaModal extends Component {
                     toggleModal();
                 }
                 else{
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
                     this.setState({loading: false})
                 }
             })
@@ -164,7 +163,7 @@ class BardanaModal extends Component {
                     toggleModal();
                 }
                 else{
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
                     this.setState({loading: false})
                 }
             })
@@ -190,7 +189,7 @@ class BardanaModal extends Component {
                 })
             }
             else{
-                ToastAndroid.show(res.message, ToastAndroid.LONG)
+                // ToastAndroid.show(res.message, ToastAndroid.LONG)
                 this.setState({loading: false})
             }
         })
@@ -213,7 +212,7 @@ class BardanaModal extends Component {
                     toggleModal();
                 }
                 else{
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
                     this.setState({loading: false})
                 }
             })
@@ -237,7 +236,7 @@ class BardanaModal extends Component {
                     toggleModal();
                 }
                 else{
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
                     this.setState({loading: false})
                 }
             })
@@ -261,7 +260,7 @@ class BardanaModal extends Component {
                     toggleModal();
                 }
                 else{
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
                     this.setState({loading: false})
                 }
             })
@@ -285,7 +284,7 @@ class BardanaModal extends Component {
                     toggleModal();
                 }
                 else{
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
                     this.setState({loading: false})
                 }
             })
@@ -382,7 +381,7 @@ class BardanaModal extends Component {
                         <View style={{alignItems: 'center'}}>
                             {
                                 type == 'DFC' || modalType == 'DFC' ?
-                                <Text style={styles.modalHeader}>Receive From DFC</Text> :
+                                <Text style={styles.modalHeader}>Receive From PRC</Text> :
                                 ( type == 'Request' ?
                                 <Text style={styles.modalHeader}>Request Bardana</Text> :
                                 <Text style={styles.modalHeader}>{type} Bardana</Text>)
@@ -401,6 +400,7 @@ class BardanaModal extends Component {
                                         : null
                                     )}
                                     placeholder='Select Grower'
+                                    maxLength={15}
                                     keyboardType='number-pad'
                                     value={sFarmer}
                                     onSelect={this.onSelect}

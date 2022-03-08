@@ -20,30 +20,14 @@ import {
     searchFarmerCnic,
 } from '../../services/BardanaApi';
 import { addProcureWheat, getWheatRecordById, updateWheatRecord } from '../../services/WheatApi';
+import { uploadPicture } from '../../services/FarmerApi';
 
 class AddWheatModal extends Component {
     constructor(props){
         super(props);
         this.state = {
             keyboardSize: 0,
-            farmers: [
-                // { 
-                //     title: 'Samir',
-                //     cnic: '42301-2548522-4' 
-                // },
-                // { 
-                //     title: 'Soahil',
-                //     cnic: '42301-2548522-4' 
-                // },
-                // { 
-                //     title: 'Trun',
-                //     cnic: '42301-2548522-4' 
-                // },
-                // { 
-                //     title: 'Kashif',
-                //     cnic: '42301-2548522-4' 
-                // },
-            ],
+            farmers: [],
             fFarmers: [],
             sFarmer: null,
             sFarmerName: '',
@@ -52,13 +36,16 @@ class AddWheatModal extends Component {
             pp: '',
             jute: '',
             billNo: '',
+            billId: '',
+            billImage: '',
             images: [],
             loading: false,
             farmerError: false,
             netWeightError: false,
             ppError: false,
             juteError: false,
-            billNoError: false
+            billNoError: false,
+            billImageError: false
         }
     }
 
@@ -100,11 +87,12 @@ class AddWheatModal extends Component {
             mediaType: 'photo',
             })
             .then((image)=>{
-                // console.log('Selected Image: ', image);
+                console.log('Selected Image: ', image);
                 UUIDGenerator.getRandomUUID((uuid) => {
                     const imageObj = {
-                        _id: uuid,
-                        uri: image.path
+                        uri: image.path,
+                        name: image.path.replace(/^.*[\\\/]/, ''),
+                        type: image.mime,
                     };
                     this.setState({images: [...this.state.images,imageObj]}
                     )
@@ -117,11 +105,12 @@ class AddWheatModal extends Component {
             mediaType: 'photo',
             })
             .then((image)=>{
-                // console.log('Selected Image: ', image);
+                console.log('Selected Image: ', image);
                 UUIDGenerator.getRandomUUID((uuid) => {
                     const imageObj = {
-                        _id: uuid,
-                        uri: image.path
+                        uri: image.path,
+                        name: image.path.replace(/^.*[\\\/]/, ''),
+                        type: image.mime,
                     };
                     this.setState({images: [...this.state.images,imageObj]}
                     )
@@ -143,6 +132,7 @@ class AddWheatModal extends Component {
     onChangeText = (query) => {
         this.setState({
             sFarmer: query,
+            sFarmerId: ''
         })
         if(query.length > 3){
             searchFarmerCnic(query)
@@ -171,24 +161,35 @@ class AddWheatModal extends Component {
 
     addWheatProcure(){
         const {toggleModal} = this.props
-        const { sFarmerId, pp, jute, netWeight, billNo } = this.state
+        const { sFarmerId, pp, jute, netWeight, billNo, images } = this.state
         const validateForm = this.validateForm()
         if(validateForm){
             this.setState({loading: true})
-            addProcureWheat(sFarmerId, pp, jute, netWeight, billNo)
-            .then((res)=>{
+            uploadPicture(images)
+            .then((res) => {
                 if(res.success){
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                    toggleModal();
+                    addProcureWheat(sFarmerId, pp, jute, netWeight, billNo, res.data[0].id)
+                    .then((res)=>{
+                        if(res.success){
+                            ToastAndroid.show(res.message, ToastAndroid.LONG)
+                            this.setState({loading: false})
+                            toggleModal();
+                        }
+                        else{
+                            this.setState({loading: false})
+                        }
+                    })
+                    .catch((err)=>{
+                        console.log('[ERR]: ', err)
+                    })
                 }
                 else{
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
                     this.setState({loading: false})
                 }
             })
             .catch((err)=>{
                 console.log('[ERR]: ', err)
+                this.setState({loading: false})
             })
         }
     }
@@ -206,11 +207,13 @@ class AddWheatModal extends Component {
                     pp: (res.data.bardanaPP).toString(),
                     jute: (res.data.bardanaJutt).toString(),
                     billNo: res.data.billNo,
+                    billId: res.data.billId,
+                    billImage: res.data.bill,
                     loading: false
                 })
             }
             else{
-                ToastAndroid.show(res.message, ToastAndroid.LONG)
+                // ToastAndroid.show(res.message, ToastAndroid.LONG)
                 this.setState({loading: false})
             }
         })
@@ -218,11 +221,11 @@ class AddWheatModal extends Component {
 
     updateWheatProcure(){
         const {toggleModal, recordId} = this.props
-        const { sFarmerId, pp, jute, netWeight, billNo } = this.state
+        const { sFarmerId, pp, jute, netWeight, billNo, billId } = this.state
         const validateForm = this.validateForm()
         if(validateForm){
             this.setState({loading: true})
-            updateWheatRecord(recordId, sFarmerId, pp, jute, netWeight, billNo)
+            updateWheatRecord(recordId, sFarmerId, pp, jute, netWeight, billNo, billId)
             .then((res)=>{
                 if(res.success){
                     ToastAndroid.show(res.message, ToastAndroid.LONG)
@@ -230,7 +233,7 @@ class AddWheatModal extends Component {
                     toggleModal();
                 }
                 else{
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
                     this.setState({loading: false})
                 }
             })
@@ -241,19 +244,25 @@ class AddWheatModal extends Component {
     }
 
     validateForm(){
-        const {sFarmer, netWeight, pp, jute, billNo} = this.state;
-        if(sFarmer && netWeight && pp && jute && billNo){
+        const {sFarmer, netWeight, pp, jute, billNo, sFarmerId, images} = this.state;
+        if(sFarmer && netWeight && pp && jute && billNo && images.length > 0){
             this.setState({
                 farmerError: false,
                 netWeightError: false,
                 ppError: false,
                 juteError: false,
-                billNoError: false
+                billNoError: false,
+                billImageError: false
             })
             return true
         }
         else{
             if(!sFarmer){
+                this.setState({farmerError: true})
+            } else {
+                this.setState({farmerError: false})
+            }
+            if(!sFarmerId){
                 this.setState({farmerError: true})
             } else {
                 this.setState({farmerError: false})
@@ -278,12 +287,17 @@ class AddWheatModal extends Component {
             } else {
                 this.setState({billNoError: false})
             }
+            if(images.length == 0){
+                this.setState({billImageError: true})
+            } else {
+                this.setState({billImageError: false})
+            }
         }
     }
 
     render(){
         const { visible, toggleModal,type } = this.props;
-        const { farmers, sFarmer, fFarmers, keyboardSize, netWeight, pp, jute, billNo, images, sFarmerName, loading, farmerError, netWeightError, ppError, juteError, billNoError} = this.state;
+        const { farmers, sFarmer, fFarmers, keyboardSize, netWeight, pp, jute, billNo, images, sFarmerName, loading, farmerError, netWeightError, ppError, juteError, billNoError, billImageError} = this.state;
         // console.log('TYPE: ', type)
         return(
             <KeyboardAvoidingView 
@@ -326,6 +340,7 @@ class AddWheatModal extends Component {
                                 )}
                                 placeholder='Select Grower'
                                 value={sFarmer}
+                                maxLength={15}
                                 keyboardType='number-pad'
                                 onSelect={this.onSelect}
                                 onChangeText={this.onChangeText}>
@@ -384,6 +399,7 @@ class AddWheatModal extends Component {
                                     : null
                                 )}
                                 placeholder='Enter Bill No.'
+                                maxLength={50}
                                 onChangeText={nextValue => this.setState({billNo: nextValue})}
                             />
                             <Text style={styles.lableStyle}>Bill Copy</Text>
@@ -408,25 +424,13 @@ class AddWheatModal extends Component {
                                         <Text style={[styles.lableStyle, {marginTop: 0, marginBottom: 5}]}>Upload Bill Copy</Text>
                                     </TouchableOpacity> 
                             }
+                            {
+                                billImageError ?
+                                <Text style={styles.captionText}>Bill Image Required</Text> :
+                                null
+                            }
                         </ScrollView>
-                        {/* <Button
-                            style={{
-                                borderRadius: 50,
-                                backgroundColor: BASE_COLOR,
-                                width: '100%',
-                                marginTop: '5%',
-                            }}
-                            appearance='outline'
-                            size='medium'
-                            status='control'
-                            onPress={()=>{
-                                type == 'Edit' ?
-                                this.updateWheatProcure():
-                                this.addWheatProcure()
-                            }}
-                            >
-                            {type == 'Edit' ? 'Update':'Add'}
-                        </Button> */}
+                        
                         <TouchableOpacity style={{
                             borderRadius: 50,
                             backgroundColor: BASE_COLOR,
@@ -469,7 +473,7 @@ class AddWheatModal extends Component {
 }
 
 const Images = ({image}) => {
-    console.log('Image: ', image[0])
+    // console.log('Image: ', image[0])
     const currentImage = image[0]
     return(
         <View style={{flex: 1, backgroundColor: FIELD_BACK_COLOR}}>

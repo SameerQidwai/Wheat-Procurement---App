@@ -1,13 +1,35 @@
 import React, { Component } from 'react'
-import {View, StyleSheet, TouchableOpacity, Keyboard, ScrollView } from 'react-native';
+import {View, StyleSheet, TouchableOpacity, Keyboard, ScrollView, Alert, ToastAndroid } from 'react-native';
 import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE } from '../../../Global';
 import { Icon, Text, Autocomplete, AutocompleteItem, Input, Modal, Button } from '@ui-kitten/components';
+import { deleteFarmerById } from '../../services/FarmerApi';
 
 class FarmerOptionModal extends Component {
     constructor(props){
         super(props);
         this.state = {
         }
+    }
+
+    deleteFarmer(){
+        const {farmerId, toggleModal} = this.props
+        Alert.alert(
+            'Are you sure you want to delete this farmer',
+            '',
+            [
+            {text: 'Yes', onPress: () => {
+                deleteFarmerById(farmerId)
+                .then((res)=>{
+                    if(res.success){
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        toggleModal();
+                    }
+                })
+            }},
+            {text: 'No', onPress: () => {}},
+            ],
+            {cancelable: true},
+        );
     }
 
     render(){
@@ -51,7 +73,7 @@ class FarmerOptionModal extends Component {
                                 <Text style={{color: BACK_COLOR, fontWeight: 'bold'}}>Edit Farmer</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                onPress={()=>{}}
+                                onPress={()=>{this.deleteFarmer()}}
                                 style={{
                                     width: '80%',
                                     height: '25%',

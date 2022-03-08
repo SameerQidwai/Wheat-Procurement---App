@@ -1,11 +1,33 @@
 import React, { Component } from 'react'
-import {View, StyleSheet, TouchableOpacity, Keyboard, ScrollView } from 'react-native';
+import {View, StyleSheet, TouchableOpacity, Keyboard, ScrollView ,Alert, ToastAndroid } from 'react-native';
 import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, GRAY_COLOR } from '../../../Global';
 import { Icon, Text, Autocomplete, AutocompleteItem, Input, Modal, Button } from '@ui-kitten/components';
+import { deleteBArdanaById } from '../../services/BardanaApi';
 
 class BardanaOptionModal2 extends Component {
     constructor(props){
         super(props);
+    }
+
+    deleteBardana(){
+        const {recordId, toggleModal} = this.props
+        Alert.alert(
+            'Are you sure you want to delete this record?',
+            '',
+            [
+            {text: 'Yes', onPress: () => {
+                deleteBArdanaById(recordId)
+                .then((res)=>{
+                    if(res.success){
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        toggleModal();
+                    }
+                })
+            }},
+            {text: 'No', onPress: () => {}},
+            ],
+            {cancelable: true},
+        );
     }
 
     render(){
@@ -56,7 +78,7 @@ class BardanaOptionModal2 extends Component {
                                 null
                             }
                             <TouchableOpacity
-                                onPress={()=>{}}
+                                onPress={()=>{this.deleteBardana()}}
                                 style={{
                                     width: '80%',
                                     height: '30%',

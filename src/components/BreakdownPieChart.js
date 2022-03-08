@@ -13,32 +13,27 @@ const BreakdownPieChart = ({series, sliceColor}) => {
                     widthAndHeight={150}
                     series={series}
                     sliceColor={sliceColor}
-                    // doughnut={true}
-                    coverRadius={0.9}
+                    doughnut={true}
+                    coverRadius={0.6}
                     coverFill={'#FFF'}
                 />
             </View>
-            <View style={{flexDirection: 'row', alignItems: 'center', margin: 10}}>
-                <View style={{ height: 15, width: 15, backgroundColor: BASE_COLOR}} />
-                <Text style={{flex: 4, marginLeft: 10, fontSize: SUB_HEADING, color: 'black'}}>Procured</Text>
-                <Text style={{flex: 1, fontSize: SUB_HEADING, fontWeight: 'bold', color: 'black'}}>{series[0]}%</Text>
+
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <View style={{flex: 1}}>
+                    <View style={{height: 15, width: 15, backgroundColor: BASE_COLOR}} />
+                </View>
+                <Text style={{flex: 4,fontSize: SUB_HEADING, color: 'black'}}>Procured</Text>
+                <Text style={{fontSize: SUB_HEADING, fontWeight: 'bold', color: 'black'}}>{series[0]}%</Text>
             </View>
-            <View style={{flexDirection: 'row', alignItems: 'center', margin: 10}}>
-                <View style={{ height: 15, width: 15, backgroundColor: RED_PIE_COLOR}} />
-                <Text style={{flex: 4, marginLeft: 10, fontSize: SUB_HEADING, color: 'black'}}>Left</Text>
-                <Text style={{flex: 1, fontSize: SUB_HEADING, fontWeight: 'bold', color: 'black'}}>{series[1]}%</Text>
+
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <View style={{flex: 1}}>
+                    <View style={{height: 15, width: 15, backgroundColor: RED_PIE_COLOR}} />
+                </View>
+                <Text style={{flex: 4,fontSize: SUB_HEADING, color: 'black'}}>Left</Text>
+                <Text style={{fontSize: SUB_HEADING, fontWeight: 'bold', color: 'black'}}>{series[1]}%</Text>
             </View>
-            {/* <View style={{flexDirection: 'row', margin: 10, alignItems: 'center'}}>
-                <Text style={{color: BLUE_PIE_COLOR, fontWeight: 'bold',fontSize: SUB_HEADING}}>More Insights</Text>
-                <Icon 
-                    style={{
-                    width: 20, 
-                    height: 20
-                    }} 
-                    fill={BLUE_PIE_COLOR} 
-                    name='arrow-ios-forward'
-                />
-            </View> */}
         </Card>
     )
 }

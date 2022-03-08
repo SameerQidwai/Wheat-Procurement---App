@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, ToastAndroid } from 'react-native';
-import { BACK_COLOR, BASE_COLOR, MAIN_HEADING, LOADING_GRAY_COLOR, GRAY_COLOR, HEADING } from '../../Global';
-import { Text, Icon } from '@ui-kitten/components';
+import { BACK_COLOR, BASE_COLOR, MAIN_HEADING, LOADING_GRAY_COLOR, GRAY_COLOR, HEADING, DEAFULT_FONT_SIZE } from '../../Global';
+import { Text, Icon, Input } from '@ui-kitten/components';
 
 import InfoCard from '../components/InfoCard';
 import RequestBardanaCard from '../components/RequestBardanaCard';
@@ -30,7 +30,9 @@ class BardanaScreen extends Component {
                     change: 'inc'
                 }
             ],
+            cnic: '',
             farmerArray: [],
+            allFarmersArray: [],
             optionModal: false,
             optionModal2: false,
             modalVisible: false,
@@ -52,7 +54,11 @@ class BardanaScreen extends Component {
         getAllBardanas()
         .then((res)=> {
             if(res.success){
-                this.setState({farmerArray: res.data, loading: false})
+                this.setState({
+                    farmerArray: res.data,
+                    allFarmersArray: res.data, 
+                    loading: false
+                })
             }
             else{
                 ToastAndroid.show(res.message, ToastAndroid.LONG)
@@ -61,8 +67,31 @@ class BardanaScreen extends Component {
         })
     }
 
+    filterBardana(val){
+        const {farmerArray, allFarmersArray} = this.state
+        if(val == ''){
+            this.setState({
+                farmerArray: allFarmersArray,
+                cnic: val
+            })
+        }else{
+            this.setState({
+                cnic: val,
+                farmerArray: allFarmersArray.filter((farmer) => {
+                    console.log('FARMER: ', farmer)
+                    console.log('VAL: ', val)
+                    return(
+                        farmer.cnic ?
+                        farmer.cnic.replaceAll('-', '').includes(val) :
+                        null
+                    )
+                })
+            })
+        }
+    }
+
     render(){
-        const { type, infoCardArray, farmerArray, modalVisible, modalType, optionModal,optionModal2, receiveFrom,recordId, loading,isEditable } = this.state;
+        const { type, infoCardArray, farmerArray, cnic, modalVisible, modalType, optionModal,optionModal2, receiveFrom,recordId, loading,isEditable } = this.state;
         console.log('R-ID: ', recordId)
         console.log('Edit: ', isEditable)
         return(
@@ -84,11 +113,14 @@ class BardanaScreen extends Component {
                         </TouchableOpacity>
                     </View>
                     <ScrollView style={{marginTop: 15}} showsVerticalScrollIndicator={false}>
-                        <View>
-                            <InfoCard data={infoCardArray} horizontal={true}/>
-                        </View>
-
-                        <View >
+                        <Input
+                            value={cnic}
+                            placeholder='XXXXX-XXXXXXX-X'
+                            keyboardType='number-pad'
+                            maxLength={13}
+                            onChangeText={nextValue => this.filterBardana(nextValue)}
+                        />
+                        <View style={{marginTop: 15}}>
                             {
                                 farmerArray.length > 0 ?
                                 <RequestBardanaCard 
@@ -122,6 +154,7 @@ class BardanaScreen extends Component {
                             toggleModal={this.closeAllModals}
                             showSelectedModal={this.showSelectedModal}
                             isEditable={isEditable}
+                            recordId={recordId}
                         />
                     }
                 </View>
@@ -252,7 +285,12 @@ const styles = StyleSheet.create({
         color: BACK_COLOR, 
         fontSize: 34, 
         fontWeight: 'bold'
-    }
+    },
+    lableStyle: {
+        color: BASE_COLOR, 
+        fontWeight: 'bold',
+        fontSize: DEAFULT_FONT_SIZE
+    },
 });
 
 export default BardanaScreen;

@@ -29,34 +29,28 @@ export const uploadPicture = async (image) => {
     const token = "Bearer " + JSON.parse(jsonValue).token
     
     const images = new FormData();
-    images.append('files', image)
+    images.append(`files[]`, image[0])
 
-    const header = {
-        Authorization: token,
-        // Accept: "application/json",
-        // "Content-Type": "multipart/form-data",
-        // 'content-Type': 'multipart/form-data'
-        'accept': 'application/json',
-        'Accept-Language': 'en-US,en;q=0.8',
-        // 'Content-Type': `multipart/form-data; boundary=${images._boundary}`,
+    const data = {
+        method: 'POST',
+        headers: {Authorization: token},
+        body: images
     }
-    console.log('Image Rec: ', image)
-    console.log('DATA: ', images._parts)
-    // console.dir(body, {'maxArrayLength': null, 'depth': null});
 
-    
+
     try {
-        const res = await axios.post(link, images, {headers: header});
-        console.log('[RES]: ', res)
-        // return(res.data)
+        const res = await fetch(link, data)
+        const json = await res.json();
+        console.log('[RES]: ', json)
+        return(json)
     } catch (e) {
-        // console.error('e -> ', e.response.data.message);
+        // console.log('e -> ', e);
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
         return({success: false})
     }
 }
 
-export const addFarmer = async (firstName, lastName, cnic, phone, address, description) => {
+export const addFarmer = async (firstName, lastName, cnic, phone, address, description, avatarId) => {
     const jsonValue = await AsyncStorage.getItem('@data')
     const token = "Bearer " + JSON.parse(jsonValue).token
     const link = `${IP}/vendors/create`;
@@ -68,7 +62,7 @@ export const addFarmer = async (firstName, lastName, cnic, phone, address, descr
         cnic,
         address,
         description,
-        avatarId: null
+        avatarId
     }
 
     const header = {
@@ -77,9 +71,10 @@ export const addFarmer = async (firstName, lastName, cnic, phone, address, descr
     }
     try {
         const res = await axios.post(link, body,{headers: header});
+        // console.log('Res', res)
         return(res.data)
     } catch (e) {
-        // console.error('e -> ', e.response.data.message);
+        console.log('e -> ', e.response.data.message);
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
         return({success: false})
     }
@@ -146,7 +141,7 @@ export const requestBardanaForFarmer = async (id, bardanaPP, bardanaJutt) => {
     
     const body = {
         bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
-        bardanaJutt: bardanaJutt == '' ? 0 : bardanaPP
+        bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
     // console.log('Link: ', link)
     // console.log('Body: ', body)
@@ -160,4 +155,25 @@ export const requestBardanaForFarmer = async (id, bardanaPP, bardanaJutt) => {
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
         return({success: false})
     }
+}
+
+export const deleteFarmerById = async (id) => {
+    const link = `${IP}/vendors/${id}`;
+    const jsonValue = await AsyncStorage.getItem('@data')
+    const token = "Bearer " + JSON.parse(jsonValue).token
+
+    const header = {
+        Authorization: token
+    }
+
+    try {
+        const res = await axios.delete(link, {headers: header})
+        // console.log('RES: ', res.data)
+        return(res.data)
+    } catch(e){
+        // console.error('e -> ', e.response.data.message);
+        ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
+        return({success: false})
+    }
+
 }

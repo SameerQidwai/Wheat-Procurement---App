@@ -34,7 +34,7 @@ export const receiveBardanaFromDFC = async (bardanaPP, bardanaJutt) => {
     
     const body = {
         bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
-        bardanaJutt: bardanaJutt == '' ? 0 : bardanaPP
+        bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
     // console.log('Link: ', link)
     // console.log('Body: ', body)
@@ -81,7 +81,7 @@ export const updateReceiveRecordById = async (id, bardanaPP, bardanaJutt) => {
 
     const body = {
         bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
-        bardanaJutt: bardanaJutt == '' ? 0 : bardanaPP
+        bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
 
     try {
@@ -127,7 +127,7 @@ export const alllocateBardanatoFarmer = async ( vendor, bardanaPP, bardanaJutt) 
     const body = {
         vendor,
         bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
-        bardanaJutt: bardanaJutt == '' ? 0 : bardanaPP
+        bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
     // console.log('Link: ', link)
     // console.log('Body: ', body)
@@ -155,7 +155,7 @@ export const returnBardanaFromFarmer = async ( returner, bardanaPP, bardanaJutt)
     const body = {
         returner,
         bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
-        bardanaJutt: bardanaJutt == '' ? 0 : bardanaPP
+        bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
     // console.log('Link: ', link)
     // console.log('Body: ', body)
@@ -183,7 +183,7 @@ export const updateBardanaIssuedToFarmer = async ( id, vendor, bardanaPP, bardan
     const body = {
         vendor,
         bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
-        bardanaJutt: bardanaJutt == '' ? 0 : bardanaPP
+        bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
 
     try {
@@ -209,7 +209,7 @@ export const updateBardanaReturnFromFarmer = async ( id, returner, bardanaPP, ba
     const body = {
         returner,
         bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
-        bardanaJutt: bardanaJutt == '' ? 0 : bardanaPP
+        bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
 
     try {
@@ -221,4 +221,25 @@ export const updateBardanaReturnFromFarmer = async ( id, returner, bardanaPP, ba
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
         return({success: false})
     }
+}
+
+export const deleteBArdanaById = async (id) => {
+    const link = `${IP}/bardanas/${id}`;
+    const jsonValue = await AsyncStorage.getItem('@data')
+    const token = "Bearer " + JSON.parse(jsonValue).token
+
+    const header = {
+        Authorization: token
+    }
+
+    try {
+        const res = await axios.delete(link, {headers: header})
+        // console.log('RES: ', res.data)
+        return(res.data)
+    } catch(e){
+        // console.error('e -> ', e.response.data.message);
+        ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
+        return({success: false})
+    }
+
 }

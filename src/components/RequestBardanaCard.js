@@ -6,7 +6,7 @@ import { Card, Icon, Text } from '@ui-kitten/components';
 const RequestBardanaCard = ({data, optionModal}) => {
     return(
         <View>
-        <Text style={styles.headingFont}>Records</Text> 
+        {/* <Text style={styles.headingFont}>Records</Text>  */}
         <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
         {
             data.map(({name, sender, date, bardanaPP, bardanaJutt, cnic, type,id, isEditable}, index) => (

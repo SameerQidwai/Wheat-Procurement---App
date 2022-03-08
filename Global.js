@@ -7,8 +7,8 @@ const {width, height} = Dimensions.get('window');
 // export const domain = 'http://192.168.43.82:8000';      //Trun-Data
 // export const domain = 'http://192.168.0.243:8000';      //Shahzaib-Office
 // export const IP = `${domain}/api`;
-export const IP = 'http://wheat.gaamatech.com/api'
-// export const IP = 'https://38ae-111-88-186-225.ngrok.io/api'
+export const IP = 'https://wheat.gaamatech.com/api'
+// export const IP = 'https://bc80-103-194-95-100.ngrok.io/api'
 
 // COLORS
 export const BASE_COLOR = '#225622';                        //DARK-GREEN    (OFFICIAL)
@@ -19,7 +19,7 @@ export const BLUE_ICON_BACK = '#0058FF1A';                  //BLUE ICON BACKGROU
 export const BLUE_ICON_FORE ='#0062FF';                     //BLUE ICON FOREGROUND
 export const FAILURE = '#F0142F';                           //RED ARROW
 export const SCUCESS = '#3DD598';                           //GREEN ARROW 
-export const RED_PIE_COLOR = '#F0142F';                     //RED
+export const RED_PIE_COLOR = '#ef2f2f';                     //RED
 export const BLUE_PIE_COLOR = '#0058FF';                    //BLUE
 export const FIELD_BACK_COLOR = '#f8f9fd'                   //LIGHT GRAY
 
