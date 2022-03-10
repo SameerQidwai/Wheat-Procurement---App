@@ -9,7 +9,7 @@ import FarmerOptionModal from './modals/FarmerOptionModal';
 import BardanaModal from './modals/BardanaModal';
 import { getFarmers } from '../services/FarmerApi';
 class PartiesScreen extends Component {
-    constructor(props){
+    constructor(props) {
         super(props);
         this.state = {
             farmerDetails: [],
@@ -25,67 +25,68 @@ class PartiesScreen extends Component {
         }
     }
 
-    componentDidMount(){
+    componentDidMount() {
         this.getData()
     }
 
-    getData(){
+    getData() {
         getFarmers()
-        .then((res)=>{
-            if(res.success){
-                this.setState({loading: false, 
-                    farmerDetails: res.data
-                })
-            }
-            else{
-                ToastAndroid.show(res.message, ToastAndroid.LONG)
-                this.setState({loading: false})
-            }
-        }).catch((err) => {
-            console.log('[ERR]: ', err)
-        })
+            .then((res) => {
+                if (res.success) {
+                    this.setState({
+                        loading: false,
+                        farmerDetails: res.data
+                    })
+                }
+                else {
+                    ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    this.setState({ loading: false })
+                }
+            }).catch((err) => {
+                console.log('[ERR]: ', err)
+            })
     }
 
 
 
-    render(){
+    render() {
         const { farmerId, farmerDetails, cnic, modalVisible, optionModal, modalType, reqBardana, loading, requestedPP, requestedJute } = this.state;
-        return(
+        return (
             <View style={styles.container}>
                 <View style={styles.content}>
-                    <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                         <Text style={styles.headingFont}>Farmers</Text>
                         <TouchableOpacity
-                        onPress={this.toggleModalState} 
-                        style={{
-                            backgroundColor: BASE_COLOR,
-                            width: 150,
-                            height: 30,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            borderRadius: 20,
-                            flexDirection: 'row'
-                        }}>
-                            <Icon 
+                            onPress={this.toggleModalState}
+                            style={{
+                                backgroundColor: BASE_COLOR,
+                                width: 150,
+                                height: 30,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                borderRadius: 20,
+                                flexDirection: 'row'
+                            }}>
+                            <Icon
                                 style={{
-                                width: 20, 
-                                height: 20
-                                }} 
-                                fill={BACK_COLOR} 
+                                    width: 20,
+                                    height: 20
+                                }}
+                                fill={BACK_COLOR}
                                 name='plus-circle-outline'
                             />
-                            <Text style={{color: BACK_COLOR, fontWeight: 'bold', marginLeft: 5}}>Add Farmer</Text>
+                            <Text style={{ color: BACK_COLOR, fontWeight: 'bold', marginLeft: 5 }}>Add Farmer</Text>
                         </TouchableOpacity>
                     </View>
 
-                    <View style={{marginVertical: 15}}>
+                    <View style={{ marginVertical: 15 }}>
                         {
-                            farmerDetails.length > 0 ? 
-                            <FarmerDetailsCard 
-                                data={farmerDetails} 
-                                optionModal={this.toggleOptionModalState}
-                            /> :
-                            <EmptyList />
+                            farmerDetails.length > 0 ?
+                                <FarmerDetailsCard
+                                    data={farmerDetails}
+                                    optionModal={this.toggleOptionModalState}
+                                /> :
+                                <EmptyList />
                         }
                     </View>
                     {modalVisible &&
@@ -115,22 +116,22 @@ class PartiesScreen extends Component {
                         />
                     }
                 </View>
-                    {
+                {
                     loading ?
-                    <View style={[{alignItems: 'center', justifyContent: 'center', backgroundColor: LOADING_GRAY_COLOR},StyleSheet.absoluteFill]}>
-                        <ActivityIndicator size='large' color= 'white'/>
-                        <Text style={{color: 'white', fontWeight: 'bold'}}>Please Wait...</Text>
-                    </View> :
-                    null
-                    }
+                        <View style={[{ alignItems: 'center', justifyContent: 'center', backgroundColor: LOADING_GRAY_COLOR }, StyleSheet.absoluteFill]}>
+                            <ActivityIndicator size='large' color='white' />
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Please Wait...</Text>
+                        </View> :
+                        null
+                }
             </View>
         )
     }
 
-    toggleModalState = () =>{
+    toggleModalState = () => {
         const { modalVisible } = this.state
         this.setState({
-            modalVisible: !modalVisible, 
+            modalVisible: !modalVisible,
             modalType: 'Add',
             farmerId: ''
         })
@@ -147,10 +148,10 @@ class PartiesScreen extends Component {
         this.getData()
     }
 
-    toggleOptionModalState = (id, pp, jute) =>{
+    toggleOptionModalState = (id, pp, jute) => {
         const { optionModal } = this.state
         this.setState({
-            optionModal: !optionModal, 
+            optionModal: !optionModal,
             farmerId: id,
             requestedPP: pp.toString(),
             requestedJute: jute.toString()
@@ -158,16 +159,16 @@ class PartiesScreen extends Component {
         this.getData()
     }
 
-    showSelectedModal = (type) =>{
+    showSelectedModal = (type) => {
         const { modalVisible } = this.state
-        if(type == 'Edit'){
+        if (type == 'Edit') {
             this.setState({
                 optionModal: false,
                 modalVisible: true,
                 modalType: type
             })
         }
-        else if(type == 'Request'){
+        else if (type == 'Request') {
             this.setState({
                 optionModal: false,
                 reqBardana: true,
@@ -178,26 +179,26 @@ class PartiesScreen extends Component {
 };
 
 const EmptyList = () => {
-    return(
+    return (
         <View style={{
             justifyContent: 'center',
             alignItems: 'center',
             marginTop: 40
         }}>
-            <Icon 
+            <Icon
                 style={{
-                width: 200, 
-                height: 200,
+                    width: 200,
+                    height: 200,
 
-                }} 
-                fill={GRAY_COLOR} 
+                }}
+                fill={GRAY_COLOR}
                 name='archive-outline'
             />
             <Text style={{
-                fontSize: HEADING, 
+                fontSize: HEADING,
                 color: GRAY_COLOR,
-                fontWeight: 'bold' 
-                }}>No Farmer Available...</Text>
+                fontWeight: 'bold'
+            }}>No Farmer Available...</Text>
         </View>
     )
 }
@@ -211,16 +212,16 @@ const styles = StyleSheet.create({
         flex: 1,
         margin: 15,
     },
-    headingFont : {
+    headingFont: {
         fontSize: MAIN_HEADING,
         fontWeight: 'bold',
         color: 'black',
     },
-    floatingButton:{
+    floatingButton: {
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: BASE_COLOR, 
-        width: 50, 
+        backgroundColor: BASE_COLOR,
+        width: 50,
         height: 50,
         borderRadius: 50,
         position: 'absolute',
@@ -235,9 +236,9 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 6
     },
-    fbText:{
-        color: BACK_COLOR, 
-        fontSize: 34, 
+    fbText: {
+        color: BACK_COLOR,
+        fontSize: 34,
         fontWeight: 'bold'
     }
 });

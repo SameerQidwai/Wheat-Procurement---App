@@ -1,13 +1,13 @@
 import React, { Component } from 'react'
 import {
-    View, 
-    StyleSheet, 
-    TouchableOpacity, 
-    ScrollView, 
-    KeyboardAvoidingView, 
-    Platform, 
-    Keyboard, 
-    Alert, 
+    View,
+    StyleSheet,
+    TouchableOpacity,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform,
+    Keyboard,
+    Alert,
     Image,
     ToastAndroid,
     ActivityIndicator,
@@ -18,13 +18,15 @@ import { Text, Icon, Input, Button, Modal } from '@ui-kitten/components';
 import ImagePicker from 'react-native-image-crop-picker';
 import UUIDGenerator from 'react-native-uuid-generator';
 import { addFarmer, getFarmerById, updateFarmerById, uploadPicture } from '../../services/FarmerApi';
+import { Image as Compressor } from 'react-native-compressor';
+import CustomImageViewer from '../../components/ImageViewer';
 
 class AddPartyModal extends Component {
-    constructor(props){
+    constructor(props) {
         super(props);
         this.state = {
-            firstName: '',
-            lastName: '',
+            name: '',
+            fatherName: '',
             cnic: '',
             contact: '',
             address: '',
@@ -38,25 +40,27 @@ class AddPartyModal extends Component {
             contactError: false,
             addressError: false,
             images: [],
-            loading: false
+            loading: false,
+            chr: 13,
+            imageModalVisible: false
         }
     }
 
-    componentDidMount(){
+    componentDidMount() {
         const { farmerId } = this.props;
         Keyboard.addListener("keyboardDidShow", (e) => {
-            this.setState({keyboardSize: e.endCoordinates.height})
+            this.setState({ keyboardSize: e.endCoordinates.height })
         })
-    
+
         Keyboard.addListener("keyboardDidHide", (e) => {
-            this.setState({keyboardSize: e.endCoordinates.height})
+            this.setState({ keyboardSize: e.endCoordinates.height })
         })
-        if(farmerId){
+        if (farmerId) {
             this.getFarmerDetails();
         }
     }
 
-    componentWillUnmount(){
+    componentWillUnmount() {
         Keyboard.removeAllListeners("keyboardDidShow");
         Keyboard.removeAllListeners("keyboardDidHide");
     }
@@ -66,105 +70,119 @@ class AddPartyModal extends Component {
             'Select image from',
             '',
             [
-            {text: 'Gallery', onPress: () => this.pickImage('GALLERY')},
-            {text: 'Camera', onPress: () => this.pickImage('CAMERA')},
+                { text: 'Gallery', onPress: () => this.pickImage('GALLERY') },
+                { text: 'Camera', onPress: () => this.pickImage('CAMERA') },
             ],
-            {cancelable: true},
+            { cancelable: true },
         );
     };
 
     pickImage = async (location) => {
         if (location === 'GALLERY') {
             ImagePicker.openPicker({
-            multiple: false,
-            mediaType: 'photo',
+                multiple: false,
+                mediaType: 'photo',
+                cropping: true,
+                freeStyleCropEnabled: true
             })
-            .then((image)=>{
-                // console.log('Selected Image: ', image);
-                UUIDGenerator.getRandomUUID((uuid) => {
+                .then(async (image) => {
+                    const compressedUri = await Compressor.compress(image.path, {
+                        compressionMethod: 'auto',
+                    });
+                    // console.log('Selected Image: ', image);
+                    // console.log('Compression: ', compressedUri);
                     const imageObj = {
-                        uri: image.path,
+                        uri: compressedUri,
                         name: image.path.replace(/^.*[\\\/]/, ''),
                         type: image.mime,
                     };
-                    this.setState({images: [...this.state.images,imageObj]}
+                    this.setState({ images: [...this.state.images, imageObj] }
                     )
                 })
-            })
-            .catch((e)=>console.log(e));
+                .catch((e) => console.log(e));
         } else if (location === 'CAMERA') {
             ImagePicker.openCamera({
-            multiple: false,
-            mediaType: 'photo',
+                multiple: false,
+                mediaType: 'photo',
+                cropping: true,
+                freeStyleCropEnabled: true
             })
-            .then((image)=>{
-                // console.log('Selected Image: ', image);
-                UUIDGenerator.getRandomUUID((uuid) => {
+                .then(async (image) => {
+                    const compressedUri = await Compressor.compress(image.path, {
+                        compressionMethod: 'auto',
+                    });
+                    // console.log('Selected Image: ', image);
+                    // console.log('Compression: ', compressedUri);
                     const imageObj = {
-                        uri: image.path,
+                        uri: compressedUri,
                         name: image.path.replace(/^.*[\\\/]/, ''),
                         type: image.mime,
                     };
-                    this.setState({images: [...this.state.images,imageObj]}
+                    this.setState({ images: [...this.state.images, imageObj] }
                     )
                 })
-            })
-            .catch((e)=>console.log(e));
+                .catch((e) => console.log(e));
         }
     };
 
-    checkPhoneRegex(val){
+    checkPhoneRegex(val) {
         const regex = RegExp(/^(3)([0-9]{9})$/gm);
+        var value = val.replace(/[^0-9]+/g, '')
         this.setState({
-            contact: val
+            contact: value
         },
-        () => {
-            const result = regex.test(val);
-            result ? this.setState({contactError1: false}) : this.setState({contactError1: true})
-        }
-        )
-    }
-
-    formateCNIC(val){
-        const regex = RegExp(/^[0-9]{5}-[0-9]{7}-[0-9]$/)
-        var value = val.replace(/^(\d{5})(\d{7})(\d{1}).*/, '$1-$2-$3')
-        this.setState({cnic: value},
             () => {
                 const result = regex.test(value);
-                result ? this.setState({cnicError1: false}) : this.setState({cnicError1: true})
+                result ? this.setState({ contactError1: false }) : this.setState({ contactError1: true })
             }
         )
     }
 
-    getFarmerDetails (){
-        const { farmerId } = this.props;
-        this.setState({loading: true})
-        getFarmerById(farmerId)
-        .then((res)=>{
-            if(res.success){
-                this.setState({
-                    firstName: res.data.firstName,
-                    lastName: res.data.lastName,
-                    cnic: res.data.cnic,
-                    contact: res.data.phone,
-                    address: res.data.address,
-                    desc: res.data.description,
-                })
-                this.setState({loading: false})
+    formateCNIC(val) {
+        const regex = RegExp(/^[0-9]{5}-[0-9]{7}-[0-9]$/)
+        var val1 = val.replace(/[^0-9]+/g, '')
+        var value = val1.replace(/^(\d{5})(\d{7})(\d{1}).*/, '$1-$2-$3')
+        this.setState({ cnic: value },
+            () => {
+                const result = regex.test(value);
+                result ? this.setState({ cnicError1: false, chr: 15 }) : this.setState({ cnicError1: true, chr: 13 })
             }
-            else{
-                // ToastAndroid.show(res.message, ToastAndroid.LONG)
-                this.setState({loading: false})
-            }
-            // this.setState({farmerDetails: res})
-        }).catch((err) => {
-            console.log('[ERR]: ', err)
-        })
+        )
     }
 
-    validateForm(){
-        const {firstName, lastName, cnic, contact, address } = this.state
-        if(firstName && lastName && cnic && contact && address){
+    getFarmerDetails() {
+        const { farmerId } = this.props;
+        this.setState({ loading: true })
+        getFarmerById(farmerId)
+            .then((res) => {
+                if (res.success) {
+                    // console.log('RES: ', res.data)
+                    this.setState({
+                        name: res.data.name,
+                        fatherName: res.data.fatherName,
+                        cnic: res.data.cnic,
+                        contact: res.data.phone,
+                        address: res.data.address,
+                        desc: res.data.description,
+                        images: [res.data.avatar],
+                        chr: 15
+                    })
+                    this.setState({ loading: false })
+                }
+                else {
+                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    this.setState({ loading: false })
+                }
+                // this.setState({farmerDetails: res})
+            }).catch((err) => {
+                console.log('[ERR]: ', err)
+                this.setState({ loading: false })
+            })
+    }
+
+    validateForm() {
+        const { name, fatherName, cnic, contact, address } = this.state
+        if (name && fatherName && cnic && contact && address) {
             this.setState({
                 fNameError: false,
                 lNameError: false,
@@ -174,331 +192,370 @@ class AddPartyModal extends Component {
             })
             return true
         }
-        else{if(!firstName){
-                this.setState({fNameError: true})
+        else {
+            if (!name) {
+                this.setState({ fNameError: true })
             }
-            else{
-                this.setState({fNameError: false})
+            else {
+                this.setState({ fNameError: false })
             }
-            if(!lastName){
-                this.setState({lNameError: true})
+            if (!fatherName) {
+                this.setState({ lNameError: true })
             }
-            else{
-                this.setState({lNameError: false})
+            else {
+                this.setState({ lNameError: false })
             }
-            if(!cnic){
-                this.setState({cnicError: true})
+            if (!cnic) {
+                this.setState({ cnicError: true })
             }
-            else{
-                this.setState({cnicError: false})
+            else {
+                this.setState({ cnicError: false })
             }
-            if(!contact){
-                this.setState({contactError: true})
+            if (!contact) {
+                this.setState({ contactError: true })
             }
-            if(!address){
-                this.setState({addressError: true})
+            if (!address) {
+                this.setState({ addressError: true })
             }
-            else{
-                this.setState({addressError: false})
+            else {
+                this.setState({ addressError: false })
             }
         }
     }
-    
-    addNewFarmer(){
+
+    addNewFarmer() {
         const { toggleModal } = this.props;
-        const {firstName, lastName, cnic, contact, address, desc, images} = this.state;
+        const { name, fatherName, cnic, contact, address, desc, images } = this.state;
         const validateForm = this.validateForm();
-        if(validateForm){
-            this.setState({loading: true})
-            if(images.length > 0){
+        if (validateForm) {
+            this.setState({ loading: true })
+            if (images.length > 0) {
                 uploadPicture(images)
-                .then((res)=>{
-                    if(res.success){
-                        ToastAndroid.show(res.message, ToastAndroid.LONG)
-                        // console.log('ID: ', res.data[0].id)
-                        addFarmer(firstName, lastName, cnic, contact, address, desc, res.data[0].id)
-                        .then((res)=>{
-                            if(res.success){
-                                ToastAndroid.show(res.message, ToastAndroid.LONG)
-                                this.setState({loading: false})
-                                toggleModal();
-                            }
-                            else{
-                                this.setState({loading: false})
-                            }
-                        })
-                        .catch((err)=>{
-                            console.log('[ERR]: ', err)
-                        })
-                    }
-                    else{
-                        this.setState({loading: false})
-                    }
-                })
-                .catch((err)=>{
-                    console.log('[ERR]: ', err)
-                })
+                    .then((res) => {
+                        if (res.success) {
+                            ToastAndroid.show(res.message, ToastAndroid.LONG)
+                            // console.log('ID: ', res.data[0].id)
+                            addFarmer(name, fatherName, cnic, contact, address, desc, res.data[0].id)
+                                .then((res) => {
+                                    if (res.success) {
+                                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                                        this.setState({ loading: false })
+                                        toggleModal();
+                                    }
+                                    else {
+                                        this.setState({ loading: false })
+                                    }
+                                })
+                                .catch((err) => {
+                                    console.log('[ERR]: ', err)
+                                    this.setState({ loading: false })
+                                })
+                        }
+                        else {
+                            this.setState({ loading: false })
+                        }
+                    })
+                    .catch((err) => {
+                        console.log('[ERR]: ', err)
+                    })
             }
-            else{
-                addFarmer(firstName, lastName, cnic, contact, address, desc, null)
-                .then((res)=>{
-                    if(res.success){
+            else {
+                addFarmer(name, fatherName, cnic, contact, address, desc, null)
+                    .then((res) => {
+                        if (res.success) {
+                            ToastAndroid.show(res.message, ToastAndroid.LONG)
+                            this.setState({ loading: false })
+                            toggleModal();
+                        }
+                        else {
+                            this.setState({ loading: false })
+                        }
+                    })
+                    .catch((err) => {
+                        console.log('[ERR]: ', err)
+                    })
+            }
+        }
+    }
+
+    updateFarmer() {
+        const { toggleModal, farmerId } = this.props;
+        const { name, fatherName, cnic, contact, address, desc } = this.state;
+
+        const validateForm = this.validateForm();
+        if (validateForm) {
+            this.setState({ loading: true })
+            updateFarmerById(farmerId, name, fatherName, cnic, contact, address, desc)
+                .then((res) => {
+                    if (res.success) {
                         ToastAndroid.show(res.message, ToastAndroid.LONG)
-                        this.setState({loading: false})
+                        this.setState({ loading: false })
                         toggleModal();
                     }
-                    else{
-                        this.setState({loading: false})
+                    else {
+                        // ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
                     }
                 })
-                .catch((err)=>{
+                .catch((err) => {
                     console.log('[ERR]: ', err)
                 })
-            }
         }
     }
 
-    updateFarmer(){
-        const { toggleModal, farmerId } = this.props;
-        const {firstName, lastName, cnic, contact, address, desc} = this.state;
-        
-        const validateForm = this.validateForm();
-        if(validateForm){
-            this.setState({loading: true})
-            updateFarmerById(farmerId, firstName, lastName, cnic, contact, address, desc)
-            .then((res)=>{
-                if(res.success){
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                    toggleModal();
-                }
-                else{
-                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                }
-            })
-            .catch((err)=>{
-                console.log('[ERR]: ', err)
-            })
-        }
+    toggleImageModal = () => {
+        const { imageModalVisible } = this.state;
+        this.setState({ imageModalVisible: !imageModalVisible })
     }
 
-    render(){
+    render() {
         const { visible, toggleModal, type, farmerId } = this.props;
-        const { 
-            firstName, 
-            lastName, 
-            cnic, 
-            contact, 
-            address, 
-            desc, 
-            keyboardSize, 
-            images, 
+        const {
+            name,
+            fatherName,
+            cnic,
+            contact,
+            address,
+            desc,
+            keyboardSize,
+            images,
             loading,
-            fNameError, 
-            lNameError, 
-            cnicError1, 
-            contactError1, 
-            addressError, 
-            cnicError, 
-            contactError 
+            fNameError,
+            lNameError,
+            cnicError1,
+            contactError1,
+            addressError,
+            cnicError,
+            contactError,
+            chr,
+            imageModalVisible,
         } = this.state;
-        return(
+        return (
             <>
-            <KeyboardAvoidingView 
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={{flex: 1}}
-            >
-            <Modal
-                backdropStyle={{backgroundColor: 'rgba(0,0,0,0.7)'}}
-                visible={visible}
-            >
-                <View style={styles.centeredView}>
-                    <View style={[styles.modalView, {marginBottom: keyboardSize + 50}]}>
-                        <TouchableOpacity 
-                            style={styles.closeButton}
-                            onPress={toggleModal}
-                            >
-                            <Icon 
-                                style={{
-                                    width: 30, 
-                                    height: 30
-                                }} 
-                                fill={BACK_COLOR} 
-                                name='close-outline'
-                            />
-                        </TouchableOpacity>
-                        <View style={{alignItems: 'center'}}>
-                        <Text style={styles.modalHeader}>{farmerId ? 'Edit' : 'Add'} Farmer</Text>
-                        </View>
-                        <ScrollView>
-                            {
-                                images.length > 0 ?
-                                    <Images image={images}/>
-                                :
-                                    <TouchableOpacity 
-                                        style={styles.uploadBtn}
-                                        onPress={this.askFromWhereToPickImage}
-                                    >
-                                        <Icon 
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={{ flex: 1 }}
+                >
+                    <Modal
+                        backdropStyle={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+                        visible={visible}
+                    >
+                        <View style={styles.centeredView}>
+                            <View style={[styles.modalView, { marginBottom: keyboardSize + 50 }]}>
+                                <TouchableOpacity
+                                    style={styles.closeButton}
+                                    onPress={toggleModal}
+                                >
+                                    <Icon
                                         style={{
-                                            width: 30, 
-                                            height: 30,
-                                            margin: 5
-                                        }} 
-                                        fill={BASE_COLOR} 
-                                        name='plus-circle-outline'
+                                            width: 30,
+                                            height: 30
+                                        }}
+                                        fill={BACK_COLOR}
+                                        name='close-outline'
                                     />
-                                        <Text style={[styles.lableStyle, {marginTop: 0, marginBottom: 5}]}>Upload Profile Picture</Text>
-                                    </TouchableOpacity> 
-                            }
-                            <Input
-                                value={firstName}
-                                label={()=>{return(
-                                    <Text style={styles.lableStyle}>First Name</Text>
-                                )}}
-                                caption={()=>(
-                                    fNameError ?
-                                        <Text style={styles.captionText}>First Name Required</Text>
-                                    : null
-                                )}
-                                maxLength={25}
-                                placeholder='Enter First Name'
-                                onChangeText={nextValue => this.setState({firstName: nextValue})}
-                            />
-                            <Input
-                                value={lastName}
-                                label={()=>{return(
-                                    <Text style={styles.lableStyle}>Last Name</Text>
-                                )}}
-                                caption={()=>(
-                                    lNameError ?
-                                        <Text style={styles.captionText}>Last Name Required</Text>
-                                    : null
-                                )}
-                                maxLength={25}
-                                placeholder='Enter Last Name'
-                                onChangeText={nextValue => this.setState({lastName: nextValue})}
-                            />
-                            <Input
-                                value={cnic}
-                                label={()=>{return(
-                                    <Text style={styles.lableStyle}>CNIC</Text>
-                                )}}
-                                placeholder='XXXXX-XXXXXXX-X'
-                                keyboardType='number-pad'
-                                maxLength={15}
-                                caption={()=>(
-                                    cnicError ?
-                                    (<Text style={styles.captionText}>CNIC Required</Text>) :
-                                    cnicError1 ?
-                                        <Text style={styles.captionText}>Should contain 13 numbers</Text>
-                                    : null
-                                )}
-                                onChangeText={nextValue => this.formateCNIC(nextValue)}
-                            />
-                            <Input
-                                value={contact}
-                                label={()=>{return(
-                                    <Text style={styles.lableStyle}>Contact No</Text>
-                                )}}
-                                placeholder='3XX-XXXXXXX'
-                                keyboardType='number-pad'
-                                maxLength={10}
-                                accessoryLeft={()=>(
-                                    <Text>+92</Text>
-                                )}
-                                caption={()=>(
-                                    contactError ?
-                                    (<Text style={styles.captionText}>Contact No Required</Text>) :
-                                    contactError1 ?
-                                        <Text style={styles.captionText}>Should start with 3 and contain 10 numbers</Text>
-                                    : null
-                                )}
-                                onChangeText={nextValue => 
+                                </TouchableOpacity>
+                                <View style={{ alignItems: 'center' }}>
+                                    <Text style={styles.modalHeader}>{farmerId ? 'Edit' : 'Add'} Farmer</Text>
+                                </View>
+                                <ScrollView>
                                     {
-                                        this.checkPhoneRegex(nextValue)
+                                        (images.length > 0 && images[0] != null) ?
+                                            <Images image={images[0]} toggle={this.toggleImageModal} />
+                                            :
+                                            <TouchableOpacity
+                                                style={styles.uploadBtn}
+                                                onPress={this.askFromWhereToPickImage}
+                                            >
+                                                <Icon
+                                                    style={{
+                                                        width: 30,
+                                                        height: 30,
+                                                        margin: 5
+                                                    }}
+                                                    fill={BASE_COLOR}
+                                                    name='plus-circle-outline'
+                                                />
+                                                <Text style={[styles.lableStyle, { marginTop: 0, marginBottom: 5 }]}>Upload Profile Picture</Text>
+                                            </TouchableOpacity>
                                     }
+                                    <Input
+                                        defaultValue={name}
+                                        label={() => {
+                                            return (
+                                                <Text style={styles.lableStyle}>Full Name</Text>
+                                            )
+                                        }}
+                                        caption={() => (
+                                            fNameError ?
+                                                <Text style={styles.captionText}>Full Name Required</Text>
+                                                : null
+                                        )}
+                                        maxLength={25}
+                                        placeholder='Enter Full Name'
+                                        onChangeText={nextValue => this.setState({ name: nextValue })}
+                                    />
+                                    <Input
+                                        defaultValue={fatherName}
+                                        label={() => {
+                                            return (
+                                                <Text style={styles.lableStyle}>Father's Name</Text>
+                                            )
+                                        }}
+                                        caption={() => (
+                                            lNameError ?
+                                                <Text style={styles.captionText}>Father's Name Required</Text>
+                                                : null
+                                        )}
+                                        maxLength={25}
+                                        placeholder="Enter Father's Name"
+                                        onChangeText={nextValue => this.setState({ fatherName: nextValue })}
+                                    />
+                                    <Input
+                                        value={cnic}
+                                        defaultValue={cnic}
+                                        label={() => {
+                                            return (
+                                                <Text style={styles.lableStyle}>CNIC</Text>
+                                            )
+                                        }}
+                                        placeholder='XXXXX-XXXXXXX-X'
+                                        keyboardType='number-pad'
+                                        maxLength={chr}
+                                        caption={() => (
+                                            cnicError ?
+                                                (<Text style={styles.captionText}>CNIC Required</Text>) :
+                                                cnicError1 ?
+                                                    <>
+                                                        <Text style={styles.captionText}>Insert without '-'{'\n'}Should contain 13 numbers</Text>
+                                                    </>
+                                                    : null
+                                        )}
+                                        onChangeText={nextValue => this.formateCNIC(nextValue)}
+                                    />
+                                    <Input
+                                        value={contact}
+                                        defaultValue={contact}
+                                        label={() => {
+                                            return (
+                                                <Text style={styles.lableStyle}>Contact No</Text>
+                                            )
+                                        }}
+                                        placeholder='3XX-XXXXXXX'
+                                        keyboardType='number-pad'
+                                        maxLength={10}
+                                        accessoryLeft={() => (
+                                            <Text>+92</Text>
+                                        )}
+                                        caption={() => (
+                                            contactError ?
+                                                (<Text style={styles.captionText}>Contact No Required</Text>) :
+                                                contactError1 ?
+                                                    <Text style={styles.captionText}>Should start with 3 and contain 10 numbers</Text>
+                                                    : null
+                                        )}
+                                        onChangeText={nextValue => {
+                                            this.checkPhoneRegex(nextValue)
+                                        }
+                                        }
+                                    />
+                                    <Input
+                                        defaultValue={address}
+                                        label={() => {
+                                            return (
+                                                <Text style={styles.lableStyle}>Address</Text>
+                                            )
+                                        }}
+                                        placeholder='Enter Address'
+                                        maxLength={150}
+                                        caption={() => (
+                                            addressError ?
+                                                <Text style={styles.captionText}>Address Required</Text>
+                                                : null
+                                        )}
+                                        onChangeText={nextValue => this.setState({ address: nextValue })}
+                                    />
+                                    <Input
+                                        defaultValue={desc}
+                                        label={() => {
+                                            return (
+                                                <Text style={styles.lableStyle}>Description</Text>
+                                            )
+                                        }}
+                                        multiline={true}
+                                        textStyle={{ minHeight: 65, maxHeight: 65 }}
+                                        placeholder='Description'
+                                        maxLength={150}
+                                        onChangeText={nextValue => this.setState({ desc: nextValue })}
+                                    />
+                                </ScrollView>
+                                <TouchableOpacity style={{
+                                    borderRadius: 50,
+                                    backgroundColor: BASE_COLOR,
+                                    width: '100%',
+                                    height: '10%',
+                                    marginTop: '5%',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}
+                                    onPress={() => {
+                                        farmerId ?
+                                            this.updateFarmer() :
+                                            this.addNewFarmer()
+                                    }}
+                                >
+                                    <Text style={{ color: 'white' }}>{farmerId ? 'Update' : 'Add'}</Text>
+                                </TouchableOpacity>
+                                {
+                                    loading ?
+                                        <View style={
+                                            [
+                                                {
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    backgroundColor: LOADING_GRAY_COLOR,
+                                                    borderRadius: 20
+                                                },
+                                                StyleSheet.absoluteFill
+                                            ]}>
+                                            <ActivityIndicator size='large' color='white' />
+                                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Please Wait...</Text>
+                                        </View> :
+                                        null
                                 }
-                            />
-                            <Input
-                                value={address}
-                                label={()=>{return(
-                                    <Text style={styles.lableStyle}>Address</Text>
-                                )}}
-                                placeholder='Enter Address'
-                                maxLength={150}
-                                caption={()=>(
-                                    addressError ?
-                                        <Text style={styles.captionText}>Address Required</Text>
-                                    : null
-                                )}
-                                onChangeText={nextValue => this.setState({address: nextValue})}
-                            />
-                            <Input
-                                value={desc}
-                                label={()=>{return(
-                                    <Text style={styles.lableStyle}>Description</Text>
-                                )}}
-                                multiline={true}
-                                textStyle={{ minHeight: 65, maxHeight: 65 }}
-                                placeholder='Description'
-                                maxLength={150}
-                                onChangeText={nextValue => this.setState({desc: nextValue})}
-                            />
-                        </ScrollView>
-                        <TouchableOpacity style={{
-                            borderRadius: 50,
-                            backgroundColor: BASE_COLOR,
-                            width: '100%',
-                            height: '10%',
-                            marginTop: '5%',
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                        }}
-                        onPress={()=> {
-                            farmerId ?
-                            this.updateFarmer() :
-                            this.addNewFarmer()
-                        }}
-                        >
-                            <Text style={{color: 'white'}}>{farmerId ? 'Update' : 'Add'}</Text>
-                        </TouchableOpacity>
+                            </View>
+                        </View>
                         {
-                            loading ?
-                            <View style={
-                                [
-                                    {alignItems: 'center', 
-                                    justifyContent: 'center', 
-                                    backgroundColor: LOADING_GRAY_COLOR,
-                                    borderRadius: 20
-                                    },
-                                    StyleSheet.absoluteFill
-                                ]}>
-                                <ActivityIndicator size='large' color= 'white'/>
-                                <Text style={{color: 'white', fontWeight: 'bold'}}>Please Wait...</Text>
-                            </View> :
-                            null
+
+                            (imageModalVisible &&
+                                <CustomImageViewer
+                                    image={images[0].uri}
+                                    visible={true}
+                                    closeModal={this.toggleImageModal}
+                                />
+                            )
                         }
-                    </View>
-                </View>
-            </Modal>
-            </KeyboardAvoidingView>
+                    </Modal>
+                </KeyboardAvoidingView>
             </>
         )
     }
 }
 
-const Images = ({image}) => {
-    // console.log('Image: ', image[0])
-    const currentImage = image[0]
-    return(
-        <View style={{flex: 1, backgroundColor: FIELD_BACK_COLOR}}>
-            <Image 
-                style={styles.image} 
-                source={{uri: currentImage.uri}}
+
+const Images = ({ image, toggle }) => {
+    // console.log('Image: ', image)
+    const currentImage = !image.uri ? { uri: image } : image
+    return (
+        <TouchableOpacity
+            style={{ flex: 1, backgroundColor: FIELD_BACK_COLOR }}
+            onPress={() => toggle()}
+        >
+            <Image
+                style={styles.image}
+                source={{ uri: currentImage.uri }}
             />
-        </View>
+        </TouchableOpacity>
     )
 }
 
@@ -507,7 +564,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        
+
     },
     modalView: {
         margin: 15,
@@ -525,11 +582,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: BASE_COLOR
     },
-    closeButton:{
+    closeButton: {
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: BASE_COLOR, 
-        width: 30, 
+        backgroundColor: BASE_COLOR,
+        width: 30,
         height: 30,
         borderRadius: 50,
         borderWidth: 1,
@@ -540,8 +597,8 @@ const styles = StyleSheet.create({
         zIndex: 1
     },
     lableStyle: {
-        color: BASE_COLOR, 
-        fontWeight: 'bold', 
+        color: BASE_COLOR,
+        fontWeight: 'bold',
         marginTop: '5%',
         fontSize: DEAFULT_FONT_SIZE
     },

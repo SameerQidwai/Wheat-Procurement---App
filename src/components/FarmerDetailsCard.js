@@ -19,6 +19,7 @@ const FarmerDetailsCard = ({data, optionModal}) => {
                             height: 60,
                             justifyContent: 'center',
                             alignItems: 'center',
+                            overflow: 'hidden'
                             
                         }}>{
                             avatar == null ?

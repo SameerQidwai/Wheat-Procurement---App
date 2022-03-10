@@ -1,6 +1,6 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
-import { Card } from '@ui-kitten/components';
+import {View, StyleSheet} from 'react-native';
+import { Card, Text } from '@ui-kitten/components';
 import { BASE_COLOR, SUB_HEADING, DEAFULT_FONT_SIZE } from '../../Global';
 const BardanaDetailsCard = ({totalBags, filledBags, issuedBags, availableBags}) => {
     return(

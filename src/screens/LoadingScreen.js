@@ -2,7 +2,7 @@ import React from 'react';
 import { View, ActivityIndicator, Image } from 'react-native';
 import { BASE_COLOR } from '../../Global'
 function LoadingScreen (props) {
-    console.log('Props: ', props)
+    // console.log('Props: ', props)
     return(
         <View style={{
             flex: 1, 

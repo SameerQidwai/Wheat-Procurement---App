@@ -77,7 +77,7 @@ class OptionModal extends Component {
                                     marginBottom: 15
                                 }}
                             >
-                                <Text style={{color: BACK_COLOR, fontWeight: 'bold'}}>Return From Farmer</Text>
+                                <Text style={{color: BACK_COLOR, fontWeight: 'bold'}}>Return Empty From Farmer</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

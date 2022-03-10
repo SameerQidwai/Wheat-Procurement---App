@@ -12,22 +12,6 @@ class WheatScreen extends Component {
     constructor(props){
         super(props);
         this.state = {
-            infoCardArray: [
-                {
-                    heading: 'Wheat Procured',
-                    value: '13/25',
-                    icon: 'refresh',
-                    difference: '2.3%',
-                    change: 'inc'
-                },
-                {
-                    heading: 'Bags Filled',
-                    value: '13/25',
-                    icon: 'refresh',
-                    difference: '2.1%',
-                    change: 'inc'
-                }
-            ],
             cnic:'',
             farmerArray: [],
             allFarmersArray: [],
@@ -76,8 +60,8 @@ class WheatScreen extends Component {
             this.setState({
                 cnic: val,
                 farmerArray: allFarmersArray.filter((farmer) => {
-                    console.log('FARMER: ', farmer)
-                    console.log('VAL: ', val)
+                    // console.log('FARMER: ', farmer)
+                    // console.log('VAL: ', val)
                     return(
                         farmer.cnic ?
                         farmer.cnic.replaceAll('-', '').includes(val) :
@@ -96,7 +80,7 @@ class WheatScreen extends Component {
         return(
             <View style={styles.container}>
                 <View style={styles.content}>
-                    <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5}}>
                     <Text style={styles.headingFont}>Wheat</Text>
                         <TouchableOpacity
                         onPress={this.toggleModalState} 
@@ -123,7 +107,7 @@ class WheatScreen extends Component {
                     </View>
                     {/* <ScrollView style={{marginTop: 15}} showsVerticalScrollIndicator={false}> */}
                         <Input
-                            value={cnic}
+                            defaultValue={cnic}
                             placeholder='XXXXX-XXXXXXX-X'
                             keyboardType='number-pad'
                             maxLength={13}

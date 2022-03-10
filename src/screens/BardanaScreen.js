@@ -14,22 +14,22 @@ class BardanaScreen extends Component {
     constructor(props){
         super(props);
         this.state = {
-            infoCardArray: [
-                {
-                    heading: 'Bardana Procured',
-                    value: '13/25',
-                    icon: 'refresh',
-                    difference: '2.3%',
-                    change: 'inc'
-                },
-                {
-                    heading: 'Bags Filled',
-                    value: '13/25',
-                    icon: 'refresh',
-                    difference: '2.1%',
-                    change: 'inc'
-                }
-            ],
+            // infoCardArray: [
+            //     {
+            //         heading: 'Bardana Procured',
+            //         value: '13/25',
+            //         icon: 'refresh',
+            //         difference: '2.3%',
+            //         change: 'inc'
+            //     },
+            //     {
+            //         heading: 'Bags Filled',
+            //         value: '13/25',
+            //         icon: 'refresh',
+            //         difference: '2.1%',
+            //         change: 'inc'
+            //     }
+            // ],
             cnic: '',
             farmerArray: [],
             allFarmersArray: [],
@@ -78,8 +78,8 @@ class BardanaScreen extends Component {
             this.setState({
                 cnic: val,
                 farmerArray: allFarmersArray.filter((farmer) => {
-                    console.log('FARMER: ', farmer)
-                    console.log('VAL: ', val)
+                    // console.log('FARMER: ', farmer)
+                    // console.log('VAL: ', val)
                     return(
                         farmer.cnic ?
                         farmer.cnic.replaceAll('-', '').includes(val) :
@@ -92,8 +92,8 @@ class BardanaScreen extends Component {
 
     render(){
         const { type, infoCardArray, farmerArray, cnic, modalVisible, modalType, optionModal,optionModal2, receiveFrom,recordId, loading,isEditable } = this.state;
-        console.log('R-ID: ', recordId)
-        console.log('Edit: ', isEditable)
+        // console.log('R-ID: ', recordId)
+        // console.log('Edit: ', isEditable)
         return(
             <View style={styles.container}>
                 <View style={styles.content}>
@@ -114,7 +114,7 @@ class BardanaScreen extends Component {
                     </View>
                     <ScrollView style={{marginTop: 15}} showsVerticalScrollIndicator={false}>
                         <Input
-                            value={cnic}
+                            defaultValue={cnic}
                             placeholder='XXXXX-XXXXXXX-X'
                             keyboardType='number-pad'
                             maxLength={13}
@@ -173,7 +173,10 @@ class BardanaScreen extends Component {
     toggleOptionModalState = () =>{
         const { optionModal } = this.state
         this.setState({
-            optionModal: !optionModal
+            optionModal: !optionModal,
+            modalType: '',
+            type: '',
+            recordId: ''
         })
         this.getData()
     }

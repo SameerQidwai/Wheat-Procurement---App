@@ -15,43 +15,27 @@ import { color } from 'react-native-reanimated';
 
 const Drawer = createDrawerNavigator();
 
-class AppNavigator extends Component{
-    constructor(props){
+class AppNavigator extends Component {
+    constructor(props) {
         super(props)
     }
-    render(){
+    render() {
         return (
-            <Drawer.Navigator 
+            <Drawer.Navigator
                 initialRouteName="Home"
                 drawerContent={props => {
                     return (
                         <DrawerContentScrollView {...props}>
                             <DrawerItemList {...props} />
-                            <DrawerItem 
-                                label={()=><Text style={{color: 'white', fontWeight: 'bold', fontSize: 13}}>Logout</Text>} 
+                            <DrawerItem
+                                label={() => <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 13 }}>Logout</Text>}
                                 onPress={() => {
                                     this.props.removeData()
                                 }} />
                         </DrawerContentScrollView>
                     )
                 }}
-                screenOptions={({ route }) => ({
-                    // headerRight: () => (
-                    //     <View style={{
-                    //         backgroundColor: GRAY_COLOR,
-                    //         margin: 15,
-                    //         borderRadius: 50
-                    //     }}>
-                    //         <Icon 
-                    //             style={{
-                    //             width: 40, 
-                    //             height: 40
-                    //             }} 
-                    //             fill='black' 
-                    //             name='person'
-                    //         />
-                    //     </View>
-                    // ),
+                screenOptions={() => ({
                     headerTitle: this.props.institute,
                     headerStyle: {
                         backgroundColor: BACK_COLOR,
@@ -63,7 +47,7 @@ class AppNavigator extends Component{
                         backgroundColor: BASE_COLOR,
                         width: 240,
                     },
-                    drawerActiveTintColor:'white',
+                    drawerActiveTintColor: 'white',
                     drawerInactiveTintColor: 'white'
                 })}
             >
@@ -71,8 +55,6 @@ class AppNavigator extends Component{
                 <Drawer.Screen name="Farmers" component={PartiesScreen} />
                 <Drawer.Screen name="Bardana" component={BardanaScreen} />
                 <Drawer.Screen name="Wheat" component={WheatScreen} />
-                {/* <Drawer.Screen name="Request Bardana" component={RequestBardana} /> */}
-                {/* <Drawer.Screen name="Receive Bardana" component={ReceiveBardana} /> */}
             </Drawer.Navigator>
         );
     }

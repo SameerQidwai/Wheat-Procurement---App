@@ -356,8 +356,8 @@ class BardanaModal extends Component {
         const {visible, toggleModal, type, receiveFrom, recordId, modalType} = this.props;
         const {sFarmer, fFarmers, pp, jute, keyboardSize, sFarmerName, loading, farmerRequired, farmerError, ppError, juteError} = this.state;
         // console.log('R-ID: ', recordId)
-        // console.log('Modal Type: ', modalType)
-        // console.log('Type: ', type)
+        console.log('Modal Type: ', modalType)
+        console.log('Type: ', type)
         return(
             <Modal
                 backdropStyle={{backgroundColor: 'rgba(0,0,0,0.7)'}}
@@ -402,7 +402,7 @@ class BardanaModal extends Component {
                                     placeholder='Select Grower'
                                     maxLength={15}
                                     keyboardType='number-pad'
-                                    value={sFarmer}
+                                    defaultValue={sFarmer}
                                     onSelect={this.onSelect}
                                     onChangeText={this.onChangeText}>
                                     {fFarmers.map(this.renderOption)}
@@ -410,7 +410,7 @@ class BardanaModal extends Component {
                                 null
                             }
                             <Input
-                                value={pp}
+                                defaultValue={pp}
                                 label={()=>{return(
                                     <Text style={styles.lableStyle}>No. of bags (PP)</Text>
                                 )}}
@@ -424,7 +424,7 @@ class BardanaModal extends Component {
                                 onChangeText={nextValue => this.setState({pp: nextValue})}
                             />
                             <Input
-                                value={jute}
+                                defaultValue={jute}
                                 label={()=>{return(
                                     <Text style={styles.lableStyle}>No. of Bags (Jute)</Text>
                                 )}}
@@ -481,7 +481,7 @@ class BardanaModal extends Component {
                             }
                             else{
                                 console.log('7')
-                                this.requestBardana()
+                                // this.requestBardana()
                                 return
                             }
                         }}

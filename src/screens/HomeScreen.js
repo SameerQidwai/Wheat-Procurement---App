@@ -11,7 +11,7 @@ import { getStats } from '../services/HomeApi';
 import BardanaDetailsCard from '../components/BardanaDetailCard';
 
 class HomeScreen extends Component {
-    constructor(props){
+    constructor(props) {
         super(props);
         this.state = {
             infoCardArray: [
@@ -36,73 +36,70 @@ class HomeScreen extends Component {
             filledBags: {},
             issuedBags: {},
             availableBags: {},
-            farmerArray: [],
             loading: true,
             refreshing: false
         }
     }
 
-    componentDidMount(){
+    componentDidMount() {
         this.getData()
     }
 
-    getData(){
+    getData() {
         const { infoCardArray } = this.state;
-        Promise.all([getWheatRecords(), getStats()])
-        .then((res) => {
-            // console.log('RES: ', res[1])
-            if(res[1].success){
-                infoCardArray[0].value = res[1].data.wheatTarget/1000;
-                infoCardArray[1].value = (res[1].data.wheatAchieved/1000);
-                infoCardArray[1].difference = Math.abs(parseFloat(res[1].data.wheatProgress.toFixed(2)))
-                infoCardArray[1].change = res[1].data.wheatProgress > 0 ? 'inc' : 'dec'
-            }
-            this.setState({
-                farmerArray: res[0].success ? res[0].data : [],
-                totalBags: res[1].success ? res[1].data.totalBardana : null,
-                filledBags: res[1].success ? res[1].data.filledBardana : null,
-                issuedBags: res[1].success ? res[1].data.allocatedBardana : null,
-                availableBags: res[1].success ? res[1].data.emptyBardana : null,
-                infoCardArray: infoCardArray,
-                loading: false,
-                refreshing: false
+        Promise.all([getStats()])
+            .then((res) => {
+                console.log('Res 52: ', res)
+                const { success, data } = res[0]
+                if (success) {
+                    infoCardArray[0].value = data.wheatTarget / 1000;
+                    infoCardArray[1].value = (data.wheatAchieved / 1000);
+                    infoCardArray[1].difference = Math.abs(parseFloat(data.wheatProgress.toFixed(2)))
+                    infoCardArray[1].change = data.wheatProgress > 0 ? 'inc' : 'dec'
+                }
+                this.setState({
+                    totalBags: success ? data.totalBardana : {},
+                    filledBags: success ? data.filledBardana : {},
+                    issuedBags: success ? data.allocatedBardana : {},
+                    availableBags: success ? data.emptyBardana : {},
+                    infoCardArray: infoCardArray,
+                    loading: false,
+                    refreshing: false
+                })
             })
-        })
-        .catch((e) => {
-            console.log(e);
-        })
+            .catch((e) => {
+                console.log(e);
+            })
     }
 
     onRefresh() {
-        this.setState({refreshing: true});
+        this.setState({ refreshing: true });
         this.getData()
     }
-    
-    render(){
-        const { infoCardArray, farmerArray, loading, refreshing, totalBags, filledBags, issuedBags,availableBags } = this.state;
+
+    render() {
+        const { infoCardArray, loading, refreshing, totalBags, filledBags, issuedBags, availableBags } = this.state;
         const totalTarget = infoCardArray[0].value
         const achievedTarget = infoCardArray[1].value
         const leftTarget = totalTarget - achievedTarget;
-        const achiveTargetPerc = (achievedTarget/totalTarget)*100
-        const leftTargetPerc = (leftTarget/totalTarget)*100
+        const achiveTargetPerc = (achievedTarget / totalTarget) * 100
+        const leftTargetPerc = (leftTarget / totalTarget) * 100
         // console.log('BAGS: ', totalBags)
 
         let series = [];
-        if(achiveTargetPerc == NaN || leftTargetPerc == NaN) 
-        {
-            series = [0,0]
-        } else 
-        {
-            series =[parseFloat(achiveTargetPerc.toFixed(2)), parseFloat(leftTargetPerc.toFixed(2))]
+        if (achiveTargetPerc == NaN || leftTargetPerc == NaN) {
+            series = [0, 0]
+        } else {
+            series = [parseFloat(achiveTargetPerc.toFixed(2)), parseFloat(leftTargetPerc.toFixed(2))]
         }
         const sliceColor = [BASE_COLOR, RED_PIE_COLOR]
-        return(
+        return (
             <View style={styles.container}>
                 <View style={styles.content}>
                     <Text style={styles.headingFont}>Dashboard</Text>
-                    
-                    <ScrollView 
-                        style={{marginTop: 15}} 
+
+                    <ScrollView
+                        style={{ marginTop: 15 }}
                         showsVerticalScrollIndicator={false}
                         refreshControl={
                             <RefreshControl
@@ -112,9 +109,9 @@ class HomeScreen extends Component {
                         }
                     >
                         <View>
-                            <InfoCard data={infoCardArray} horizontal={true}/>
+                            <InfoCard data={infoCardArray} horizontal={true} />
                         </View>
-                    
+
                         <View>
                             <BreakdownPieChart
                                 series={series}
@@ -124,7 +121,7 @@ class HomeScreen extends Component {
                         <View>
                             <BardanaDetailsCard
                                 totalBags={totalBags}
-                                filledBags={filledBags} 
+                                filledBags={filledBags}
                                 issuedBags={issuedBags}
                                 availableBags={availableBags}
                             />
@@ -133,11 +130,11 @@ class HomeScreen extends Component {
                 </View>
                 {
                     loading ?
-                    <View style={[{alignItems: 'center', justifyContent: 'center', backgroundColor: LOADING_GRAY_COLOR},StyleSheet.absoluteFill]}>
-                        <ActivityIndicator size='large' color= 'white'/>
-                        <Text style={{color: 'white', fontWeight: 'bold'}}>Fetching Stats...</Text>
-                    </View> :
-                    null
+                        <View style={[{ alignItems: 'center', justifyContent: 'center', backgroundColor: LOADING_GRAY_COLOR }, StyleSheet.absoluteFill]}>
+                            <ActivityIndicator size='large' color='white' />
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Fetching Stats...</Text>
+                        </View> :
+                        null
                 }
             </View>
         )
@@ -153,7 +150,7 @@ const styles = StyleSheet.create({
         flex: 1,
         margin: 15,
     },
-    headingFont : {
+    headingFont: {
         fontSize: MAIN_HEADING,
         fontWeight: 'bold',
         color: 'black'

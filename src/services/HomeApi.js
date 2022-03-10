@@ -13,12 +13,12 @@ export const getStats = async () => {
     }
 
     try {
-        const res = await axios.get(link, {headers: header})
+        const res = await axios.get(link, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
-        // console.error('e -> ', e.response.data.message);
-        ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return (res.data)
+    } catch (e) {
+        // console.log('e -> 20', e.response.status);
+        ToastAndroid.show(e?.response?.status == 500 ? 'Something went wrong' : e?.response?.data?.message, ToastAndroid.LONG)
+        return ({ success: false, message: e?.response?.data?.message })
     }
 }
