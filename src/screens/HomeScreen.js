@@ -42,6 +42,7 @@ class HomeScreen extends Component {
     }
 
     componentDidMount() {
+        // console.log('Props in Home Screen: ', this.props);
         this.getData()
     }
 
@@ -49,23 +50,30 @@ class HomeScreen extends Component {
         const { infoCardArray } = this.state;
         Promise.all([getStats()])
             .then((res) => {
-                console.log('Res 52: ', res)
-                const { success, data } = res[0]
+                // console.log('Res 52: ', res)
+                const { success, data, message } = res[0]
+                // console.log('RES 55 HS: ', res[0])
                 if (success) {
                     infoCardArray[0].value = data.wheatTarget / 1000;
                     infoCardArray[1].value = (data.wheatAchieved / 1000);
                     infoCardArray[1].difference = Math.abs(parseFloat(data.wheatProgress.toFixed(2)))
                     infoCardArray[1].change = data.wheatProgress > 0 ? 'inc' : 'dec'
+                    this.setState({
+                        totalBags: data.totalBardana,
+                        filledBags: data.filledBardana,
+                        issuedBags: data.allocatedBardana,
+                        availableBags: data.emptyBardana,
+                        infoCardArray: infoCardArray,
+                        loading: false,
+                        refreshing: false
+                    })
                 }
-                this.setState({
-                    totalBags: success ? data.totalBardana : {},
-                    filledBags: success ? data.filledBardana : {},
-                    issuedBags: success ? data.allocatedBardana : {},
-                    availableBags: success ? data.emptyBardana : {},
-                    infoCardArray: infoCardArray,
-                    loading: false,
-                    refreshing: false
-                })
+                else {
+                    this.setState({
+                        loading: false,
+                        refreshing: false
+                    })
+                }
             })
             .catch((e) => {
                 console.log(e);

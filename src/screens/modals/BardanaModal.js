@@ -1,21 +1,21 @@
 import React, { Component } from 'react'
-import {View, StyleSheet, TouchableOpacity, Keyboard, ScrollView, ToastAndroid, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Keyboard, ScrollView, ToastAndroid, ActivityIndicator } from 'react-native';
 import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, LOADING_GRAY_COLOR } from '../../../Global';
 import { Icon, Text, Autocomplete, AutocompleteItem, Input, Modal, Button } from '@ui-kitten/components';
 import { requestBardanaForFarmer } from '../../services/FarmerApi';
-import { 
-    alllocateBardanatoFarmer, 
-    getBardanaRecordById, 
-    receiveBardanaFromDFC, 
-    returnBardanaFromFarmer, 
-    searchFarmerCnic, 
-    updateBardanaIssuedToFarmer, 
-    updateBardanaReturnFromFarmer, 
-    updateReceiveRecordById 
+import {
+    alllocateBardanatoFarmer,
+    getBardanaRecordById,
+    receiveBardanaFromDFC,
+    returnBardanaFromFarmer,
+    searchFarmerCnic,
+    updateBardanaIssuedToFarmer,
+    updateBardanaReturnFromFarmer,
+    updateReceiveRecordById
 } from '../../services/BardanaApi';
 
 class BardanaModal extends Component {
-    constructor(props){
+    constructor(props) {
         super(props);
         this.state = {
             keyboardSize: 0,
@@ -37,25 +37,25 @@ class BardanaModal extends Component {
         }
     }
 
-    componentDidMount(){
-        const {pp, jute } =this.props
-        const {recordId} = this.props
+    componentDidMount() {
+        const { pp, jute } = this.props
+        const { recordId } = this.props
         Keyboard.addListener("keyboardDidShow", (e) => {
-            this.setState({keyboardSize: e.endCoordinates.height})
+            this.setState({ keyboardSize: e.endCoordinates.height })
         })
-    
+
         Keyboard.addListener("keyboardDidHide", (e) => {
-            this.setState({keyboardSize: e.endCoordinates.height})
+            this.setState({ keyboardSize: e.endCoordinates.height })
         })
-        if(pp || jute){
-            this.setState({pp, jute})
+        if (pp || jute) {
+            this.setState({ pp, jute })
         }
-        if(recordId){
+        if (recordId) {
             this.getBardanaById()
         }
     }
 
-    componentWillUnmount(){
+    componentWillUnmount() {
         Keyboard.removeAllListeners("keyboardDidShow");
         Keyboard.removeAllListeners("keyboardDidHide");
     }
@@ -68,238 +68,238 @@ class BardanaModal extends Component {
             sFarmerId: fFarmers[index].id
         })
     };
-    
+
     onChangeText = (query) => {
         // console.log('Q: ', query)
         this.setState({
             sFarmer: query,
         })
-        if(query.length > 3){
+        if (query.length > 3) {
             searchFarmerCnic(query)
-            .then((res) => {
-                // console.log('[RES]: ', res.data)
-                this.setState({fFarmers: res.data, sFarmerName: ''})
-            })
+                .then((res) => {
+                    // console.log('[RES]: ', res.data)
+                    this.setState({ fFarmers: res.data, sFarmerName: '' })
+                })
         }
-        else{
-            this.setState({fFarmers: [], sFarmerName: ''})
+        else {
+            this.setState({ fFarmers: [], sFarmerName: '' })
         }
     };
-    
+
     renderOption = (item, index) => (
         <AutocompleteItem
-            style={{backgroundColor: '#dadce6'}}
-            key={index+''}
-            title={()=>(
-                <View style={{borderBottomWidth: 0.5, borderColor: BASE_COLOR}}>
+            style={{ backgroundColor: '#dadce6' }}
+            key={index + ''}
+            title={() => (
+                <View style={{ borderBottomWidth: 0.5, borderColor: BASE_COLOR }}>
                     <Text >{item.name}</Text>
-                    <Text style={{fontSize: 10}}>{item.cnic}</Text>
+                    <Text style={{ fontSize: 10 }}>{item.cnic}</Text>
                 </View>
             )}
         />
     );
 
-    requestBardana(){
-        const { farmerId, toggleModal} = this.props;
+    requestBardana() {
+        const { farmerId, toggleModal } = this.props;
         const { pp, jute } = this.state
         const validateForm = this.validateForm();
         // console.log('Verifying')
-        if(validateForm){
-            this.setState({loading: true})
+        if (validateForm) {
+            this.setState({ loading: true })
             // console.log('Submitting')
             requestBardanaForFarmer(farmerId, pp, jute)
-            .then((res)=>{
-                if(res.success){
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                    toggleModal();
-                }
-                else{
-                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                }
-            })
-            .catch((err)=>{
-                console.log('[ERR]: ', err)
-            })
+                .then((res) => {
+                    if (res.success) {
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                        toggleModal();
+                    }
+                    else {
+                        // ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                    }
+                })
+                .catch((err) => {
+                    console.log('[ERR]: ', err)
+                })
         }
     }
 
-    receiveFromDFC(){
-        const { toggleModal} = this.props;
+    receiveFromDFC() {
+        const { toggleModal } = this.props;
         const { pp, jute } = this.state
         const validateForm = this.validateForm();
-        if(validateForm){
-            this.setState({loading: true})
+        if (validateForm) {
+            this.setState({ loading: true })
             receiveBardanaFromDFC(pp, jute)
-            .then((res)=>{
-                if(res.success){
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                    toggleModal();
-                }
-                else{
-                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                }
-            })
-            .catch((err)=>{
-                console.log('[ERR]: ', err)
-            })
-        }
-    }
-
-    updateReceiveFromDFC(){
-        const {recordId, toggleModal} = this.props
-        const {pp, jute} = this.state
-        const validateForm = this.validateForm();
-        if(validateForm){
-            this.setState({loading: true})
-            updateReceiveRecordById(recordId, pp, jute)
-            .then((res)=>{
-                if(res.success){
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                    toggleModal();
-                }
-                else{
-                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                }
-            })
-            .catch((err)=>{
-                console.log('[ERR]: ', err)
-            })
-        }
-    }
-
-    getBardanaById(){
-        this.setState({loading: true})
-        const {recordId} = this.props
-        getBardanaRecordById(recordId)
-        .then((res) =>{
-            if(res.success){
-                this.setState({
-                    pp: (res.data.bardanaPP).toString(),
-                    jute: (res.data.bardanaJutt).toString(),
-                    farmerId: res.data.vendorId,
-                    sFarmer: res.data.cnic,
-                    sFarmerName: res.data.name,
-                    loading: false
+                .then((res) => {
+                    if (res.success) {
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                        toggleModal();
+                    }
+                    else {
+                        // ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                    }
                 })
-            }
-            else{
-                // ToastAndroid.show(res.message, ToastAndroid.LONG)
-                this.setState({loading: false})
-            }
-        })
-        .catch((err)=>{
-            console.log('[ERR]: ', err)
-        })
+                .catch((err) => {
+                    console.log('[ERR]: ', err)
+                })
+        }
     }
 
-    allocateBardana(){
-        const {toggleModal} = this.props
-        const {sFarmerId, pp, jute} = this.state;
+    updateReceiveFromDFC() {
+        const { recordId, toggleModal } = this.props
+        const { pp, jute } = this.state
         const validateForm = this.validateForm();
-        if(validateForm){
-            this.setState({loading: true})
+        if (validateForm) {
+            this.setState({ loading: true })
+            updateReceiveRecordById(recordId, pp, jute)
+                .then((res) => {
+                    if (res.success) {
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                        toggleModal();
+                    }
+                    else {
+                        // ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                    }
+                })
+                .catch((err) => {
+                    console.log('[ERR]: ', err)
+                })
+        }
+    }
+
+    getBardanaById() {
+        this.setState({ loading: true })
+        const { recordId } = this.props
+        getBardanaRecordById(recordId)
+            .then((res) => {
+                if (res.success) {
+                    this.setState({
+                        pp: (res.data.bardanaPP).toString(),
+                        jute: (res.data.bardanaJutt).toString(),
+                        farmerId: res.data.vendorId,
+                        sFarmer: res.data.cnic,
+                        sFarmerName: res.data.name,
+                        loading: false
+                    })
+                }
+                else {
+                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
+                    this.setState({ loading: false })
+                }
+            })
+            .catch((err) => {
+                console.log('[ERR]: ', err)
+            })
+    }
+
+    allocateBardana() {
+        const { toggleModal } = this.props
+        const { sFarmerId, pp, jute } = this.state;
+        const validateForm = this.validateForm();
+        if (validateForm) {
+            this.setState({ loading: true })
             alllocateBardanatoFarmer(sFarmerId, pp, jute)
-            .then((res)=>{
-                if(res.success){
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                    toggleModal();
-                }
-                else{
-                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                }
-            })
-            .catch((err)=>{
-                console.log('[ERR]: ', err)
-            })
+                .then((res) => {
+                    if (res.success) {
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                        toggleModal();
+                    }
+                    else {
+                        // ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                    }
+                })
+                .catch((err) => {
+                    console.log('[ERR]: ', err)
+                })
         }
     }
 
-    returnBardana(){
-        const {toggleModal} = this.props
-        const {sFarmerId, pp, jute} = this.state;
+    returnBardana() {
+        const { toggleModal } = this.props
+        const { sFarmerId, pp, jute } = this.state;
         const validateForm = this.validateForm();
-        if(validateForm){
-            this.setState({loading: true})
+        if (validateForm) {
+            this.setState({ loading: true })
             returnBardanaFromFarmer(sFarmerId, pp, jute)
-            .then((res)=>{
-                if(res.success){
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                    toggleModal();
-                }
-                else{
-                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                }
-            })
-            .catch((err)=>{
-                console.log('[ERR]: ', err)
-            })
+                .then((res) => {
+                    if (res.success) {
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                        toggleModal();
+                    }
+                    else {
+                        // ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                    }
+                })
+                .catch((err) => {
+                    console.log('[ERR]: ', err)
+                })
         }
     }
 
-    updateAllocatedBardana(){
+    updateAllocatedBardana() {
         const { recordId, toggleModal } = this.props
-        const {pp, jute, farmerId} = this.state;
+        const { pp, jute, farmerId } = this.state;
         const validateForm = this.validateForm();
-        if(validateForm){
-            this.setState({loading: true})
+        if (validateForm) {
+            this.setState({ loading: true })
             updateBardanaIssuedToFarmer(recordId, farmerId, pp, jute)
-            .then((res)=>{
-                if(res.success){
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                    toggleModal();
-                }
-                else{
-                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                }
-            })
-            .catch((err)=>{
-                console.log('[ERR]: ', err)
-            })
+                .then((res) => {
+                    if (res.success) {
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                        toggleModal();
+                    }
+                    else {
+                        // ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                    }
+                })
+                .catch((err) => {
+                    console.log('[ERR]: ', err)
+                })
         }
     }
 
-    updateReturnBardana(){
+    updateReturnBardana() {
         const { recordId, toggleModal } = this.props
-        const {pp, jute, farmerId} = this.state;
+        const { pp, jute, farmerId } = this.state;
         const validateForm = this.validateForm();
-        if(validateForm){
-            this.setState({loading: true})
+        if (validateForm) {
+            this.setState({ loading: true })
             updateBardanaReturnFromFarmer(recordId, farmerId, pp, jute)
-            .then((res)=>{
-                if(res.success){
-                    ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                    toggleModal();
-                }
-                else{
-                    // ToastAndroid.show(res.message, ToastAndroid.LONG)
-                    this.setState({loading: false})
-                }
-            })
-            .catch((err)=>{
-                console.log('[ERR]: ', err)
-            })
+                .then((res) => {
+                    if (res.success) {
+                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                        toggleModal();
+                    }
+                    else {
+                        // ToastAndroid.show(res.message, ToastAndroid.LONG)
+                        this.setState({ loading: false })
+                    }
+                })
+                .catch((err) => {
+                    console.log('[ERR]: ', err)
+                })
         }
     }
 
-    validateForm(){
-        const {sFarmer, pp, jute} = this.state
-        const {type, modalType} = this.props;
+    validateForm() {
+        const { sFarmer, pp, jute } = this.state
+        const { type, modalType } = this.props;
 
-        if(type != 'DFC' && type != 'Request' && modalType != 'DFC'){
-            if(sFarmer && pp && jute){
+        if (type != 'DFC' && type != 'Request' && modalType != 'DFC') {
+            if (sFarmer && pp && jute) {
                 this.setState({
                     farmerError: false,
                     ppError: false,
@@ -307,135 +307,141 @@ class BardanaModal extends Component {
                 })
                 return true;
             }
-            else{
-                if(!sFarmer){
-                    this.setState({farmerError: true})
+            else {
+                if (!sFarmer) {
+                    this.setState({ farmerError: true })
                 }
-                else{
-                    this.setState({farmerError: false})
+                else {
+                    this.setState({ farmerError: false })
                 }
-                if(!pp){
-                    this.setState({ppError: true})
+                if (!pp) {
+                    this.setState({ ppError: true })
                 }
-                else{
-                    this.setState({ppError: false})
+                else {
+                    this.setState({ ppError: false })
                 }
-                if(!jute){
-                    this.setState({juteError: true})
+                if (!jute) {
+                    this.setState({ juteError: true })
                 }
-                else{
-                    this.setState({juteError: false})
+                else {
+                    this.setState({ juteError: false })
                 }
             }
-        }else{
-            if(pp && jute){
+        } else {
+            if (pp && jute) {
                 this.setState({
                     ppError: false,
                     juteError: false
                 })
                 return true;
             }
-            else{
-                if(!pp){
-                    this.setState({ppError: true})
+            else {
+                if (!pp) {
+                    this.setState({ ppError: true })
                 }
-                else{
-                    this.setState({ppError: false})
+                else {
+                    this.setState({ ppError: false })
                 }
-                if(!jute){
-                    this.setState({juteError: true})
+                if (!jute) {
+                    this.setState({ juteError: true })
                 }
-                else{
-                    this.setState({juteError: false})
+                else {
+                    this.setState({ juteError: false })
                 }
             }
         }
     }
 
-    render(){
-        const {visible, toggleModal, type, receiveFrom, recordId, modalType} = this.props;
-        const {sFarmer, fFarmers, pp, jute, keyboardSize, sFarmerName, loading, farmerRequired, farmerError, ppError, juteError} = this.state;
+    render() {
+        const { visible, toggleModal, type, receiveFrom, recordId, modalType } = this.props;
+        const { sFarmer, fFarmers, pp, jute, keyboardSize, sFarmerName, loading, farmerRequired, farmerError, ppError, juteError } = this.state;
         // console.log('R-ID: ', recordId)
         console.log('Modal Type: ', modalType)
         console.log('Type: ', type)
-        return(
+        return (
             <Modal
-                backdropStyle={{backgroundColor: 'rgba(0,0,0,0.7)'}}
+                backdropStyle={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
                 visible={visible}
             >
                 <View style={styles.centeredView}>
-                    <View style={[styles.modalView, {marginBottom: keyboardSize + 50}]}>
-                        <TouchableOpacity 
+                    <View style={[styles.modalView, { marginBottom: keyboardSize + 50 }]}>
+                        <TouchableOpacity
                             style={styles.closeButton}
                             onPress={toggleModal}
                         >
-                            <Icon 
+                            <Icon
                                 style={{
-                                width: 30, 
-                                height: 30
-                                }} 
-                                fill={BACK_COLOR} 
+                                    width: 30,
+                                    height: 30
+                                }}
+                                fill={BACK_COLOR}
                                 name='close-outline'
                             />
                         </TouchableOpacity>
-                        <View style={{alignItems: 'center'}}>
+                        <View style={{ alignItems: 'center' }}>
                             {
                                 type == 'DFC' || modalType == 'DFC' ?
-                                <Text style={styles.modalHeader}>Receive From PRC</Text> :
-                                ( type == 'Request' ?
-                                <Text style={styles.modalHeader}>Request Bardana</Text> :
-                                <Text style={styles.modalHeader}>{type} Bardana</Text>)
+                                    <Text style={styles.modalHeader}>Receive From PRC</Text> :
+                                    (type == 'Request' ?
+                                        <Text style={styles.modalHeader}>Request Bardana</Text> :
+                                        <Text style={styles.modalHeader}>{type} Bardana</Text>)
                             }
                         </View>
-                        <ScrollView style={{maxHeight: '90%'}} showsVerticalScrollIndicator={false}>
+                        <ScrollView style={{ maxHeight: '90%' }} showsVerticalScrollIndicator={false}>
                             {
                                 (type != 'DFC' && type != 'Request' && modalType != 'DFC') ?
-                                <Autocomplete
-                                    label={()=>{return(
-                                        <Text style={styles.lableStyle}>{sFarmerName? 'Farmer ('+sFarmerName+')' : 'Farmer'}</Text>
-                                    )}}
-                                    caption={()=>(
-                                        farmerError ?
-                                            <Text style={styles.captionText}>Farmer Required</Text>
-                                        : null
-                                    )}
-                                    placeholder='Select Grower'
-                                    maxLength={15}
-                                    keyboardType='number-pad'
-                                    defaultValue={sFarmer}
-                                    onSelect={this.onSelect}
-                                    onChangeText={this.onChangeText}>
-                                    {fFarmers.map(this.renderOption)}
-                                </Autocomplete> :
-                                null
+                                    <Autocomplete
+                                        label={() => {
+                                            return (
+                                                <Text style={styles.lableStyle}>{sFarmerName ? 'Farmer (' + sFarmerName + ')' : 'Farmer'}</Text>
+                                            )
+                                        }}
+                                        caption={() => (
+                                            farmerError ?
+                                                <Text style={styles.captionText}>Farmer Required</Text>
+                                                : null
+                                        )}
+                                        placeholder='Select Grower'
+                                        maxLength={15}
+                                        keyboardType='number-pad'
+                                        defaultValue={sFarmer}
+                                        onSelect={this.onSelect}
+                                        onChangeText={this.onChangeText}>
+                                        {fFarmers.map(this.renderOption)}
+                                    </Autocomplete> :
+                                    null
                             }
                             <Input
                                 defaultValue={pp}
-                                label={()=>{return(
-                                    <Text style={styles.lableStyle}>No. of bags (PP)</Text>
-                                )}}
-                                caption={()=>(
+                                label={() => {
+                                    return (
+                                        <Text style={styles.lableStyle}>No. of bags (PP)</Text>
+                                    )
+                                }}
+                                caption={() => (
                                     ppError ?
                                         <Text style={styles.captionText}>No. of Bags Required</Text>
-                                    : null
+                                        : null
                                 )}
                                 keyboardType='number-pad'
                                 placeholder='Value'
-                                onChangeText={nextValue => this.setState({pp: nextValue})}
+                                onChangeText={nextValue => this.setState({ pp: nextValue })}
                             />
                             <Input
                                 defaultValue={jute}
-                                label={()=>{return(
-                                    <Text style={styles.lableStyle}>No. of Bags (Jute)</Text>
-                                )}}
-                                caption={()=>(
+                                label={() => {
+                                    return (
+                                        <Text style={styles.lableStyle}>No. of Bags (Jute)</Text>
+                                    )
+                                }}
+                                caption={() => (
                                     juteError ?
                                         <Text style={styles.captionText}>No. of Bags Required</Text>
-                                    : null
+                                        : null
                                 )}
                                 keyboardType='number-pad'
                                 placeholder='Value'
-                                onChangeText={nextValue => this.setState({jute: nextValue})}
+                                onChangeText={nextValue => this.setState({ jute: nextValue })}
                             />
                         </ScrollView>
                         <TouchableOpacity style={{
@@ -447,19 +453,19 @@ class BardanaModal extends Component {
                             justifyContent: 'center',
                             alignItems: 'center'
                         }}
-                        onPress={()=> {
-                            if(type == 'DFC' || modalType == 'DFC'){
-                                if(recordId){
-                                    console.log('1')
-                                    this.updateReceiveFromDFC()
+                            onPress={() => {
+                                if (type == 'DFC' || modalType == 'DFC') {
+                                    if (recordId) {
+                                        console.log('1')
+                                        this.updateReceiveFromDFC()
+                                        return
+                                    }
+                                    console.log('2')
+                                    this.receiveFromDFC()
                                     return
                                 }
-                                console.log('2')
-                                this.receiveFromDFC()
-                                return
-                            }
-                            else if(type == 'Issue' || modalType == 'Issue'){
-                                    if(recordId){
+                                else if (type == 'Issue' || modalType == 'Issue') {
+                                    if (recordId) {
                                         console.log('3')
                                         this.updateAllocatedBardana()
                                         return
@@ -468,9 +474,9 @@ class BardanaModal extends Component {
                                     this.allocateBardana()
                                     return
 
-                            }
-                            else if(type == 'Return' || modalType == 'Return'){
-                                    if(recordId){
+                                }
+                                else if (type == 'Return' || modalType == 'Return') {
+                                    if (recordId) {
                                         console.log('5')
                                         this.updateReturnBardana()
                                         return
@@ -478,31 +484,32 @@ class BardanaModal extends Component {
                                     console.log('6')
                                     this.returnBardana()
                                     return
-                            }
-                            else{
-                                console.log('7')
-                                // this.requestBardana()
-                                return
-                            }
-                        }}
+                                }
+                                else {
+                                    console.log('7')
+                                    this.requestBardana()
+                                    return
+                                }
+                            }}
                         >
-                            <Text style={{color: 'white'}}>Submit</Text>
+                            <Text style={{ color: 'white' }}>Submit</Text>
                         </TouchableOpacity>
                         {
                             loading ?
-                            <View style={
-                                [
-                                    {alignItems: 'center', 
-                                    justifyContent: 'center', 
-                                    backgroundColor: LOADING_GRAY_COLOR,
-                                    borderRadius: 20
-                                    },
-                                    StyleSheet.absoluteFill
-                                ]}>
-                                <ActivityIndicator size='large' color= 'white'/>
-                                <Text style={{color: 'white', fontWeight: 'bold'}}>Please Wait...</Text>
-                            </View> :
-                            null
+                                <View style={
+                                    [
+                                        {
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            backgroundColor: LOADING_GRAY_COLOR,
+                                            borderRadius: 20
+                                        },
+                                        StyleSheet.absoluteFill
+                                    ]}>
+                                    <ActivityIndicator size='large' color='white' />
+                                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Please Wait...</Text>
+                                </View> :
+                                null
                         }
                     </View>
                 </View>
@@ -535,11 +542,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: BASE_COLOR
     },
-    closeButton:{
+    closeButton: {
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: BASE_COLOR, 
-        width: 30, 
+        backgroundColor: BASE_COLOR,
+        width: 30,
         height: 30,
         borderRadius: 50,
         borderWidth: 1,
@@ -550,8 +557,8 @@ const styles = StyleSheet.create({
         zIndex: 1
     },
     lableStyle: {
-        color: BASE_COLOR, 
-        fontWeight: 'bold', 
+        color: BASE_COLOR,
+        fontWeight: 'bold',
         marginTop: '5%',
         fontSize: DEAFULT_FONT_SIZE
     },

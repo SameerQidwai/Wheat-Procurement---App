@@ -14,7 +14,7 @@ import {
     TextInput
 } from 'react-native';
 import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, MAIN_HEADING, FIELD_BACK_COLOR, GRAY_COLOR, LOADING_GRAY_COLOR } from '../../../Global';
-import { Text, Icon, Input, Button, Modal } from '@ui-kitten/components';
+import { Text, Icon, Input, Button, Modal, Select, IndexPath, SelectItem } from '@ui-kitten/components';
 import ImagePicker from 'react-native-image-crop-picker';
 import UUIDGenerator from 'react-native-uuid-generator';
 import { addFarmer, getFarmerById, updateFarmerById, uploadPicture } from '../../services/FarmerApi';
@@ -39,10 +39,22 @@ class AddPartyModal extends Component {
             cnicError: false,
             contactError: false,
             addressError: false,
+            docImageError: false,
             images: [],
+            docImages: [],
             loading: false,
             chr: 13,
-            imageModalVisible: false
+            sImage: [],
+            imageModalVisible: false,
+            data: [
+                { id: 1, val: 'Form 7' },
+                { id: 2, val: 'Passbook' },
+                { id: 3, val: 'Dhal Receipt' },
+                { id: 4, val: 'Partal Report' },
+                { id: 5, val: 'Others' },
+            ],
+            selectedIndex: new IndexPath(0),
+            selectId: 1,
         }
     }
 
@@ -65,19 +77,19 @@ class AddPartyModal extends Component {
         Keyboard.removeAllListeners("keyboardDidHide");
     }
 
-    askFromWhereToPickImage = () => {
+    askFromWhereToPickImage = (addTo) => {
         Alert.alert(
             'Select image from',
             '',
             [
-                { text: 'Gallery', onPress: () => this.pickImage('GALLERY') },
-                { text: 'Camera', onPress: () => this.pickImage('CAMERA') },
+                { text: 'Gallery', onPress: () => this.pickImage('GALLERY', addTo) },
+                { text: 'Camera', onPress: () => this.pickImage('CAMERA', addTo) },
             ],
             { cancelable: true },
         );
     };
 
-    pickImage = async (location) => {
+    pickImage = async (location, addTo) => {
         if (location === 'GALLERY') {
             ImagePicker.openPicker({
                 multiple: false,
@@ -96,8 +108,12 @@ class AddPartyModal extends Component {
                         name: image.path.replace(/^.*[\\\/]/, ''),
                         type: image.mime,
                     };
-                    this.setState({ images: [...this.state.images, imageObj] }
-                    )
+                    if (addTo === 'images') {
+                        this.setState({ images: [...this.state.images, imageObj] })
+                    }
+                    else if (addTo === 'docImages') {
+                        this.setState({ docImages: [...this.state.docImages, imageObj] })
+                    }
                 })
                 .catch((e) => console.log(e));
         } else if (location === 'CAMERA') {
@@ -118,8 +134,12 @@ class AddPartyModal extends Component {
                         name: image.path.replace(/^.*[\\\/]/, ''),
                         type: image.mime,
                     };
-                    this.setState({ images: [...this.state.images, imageObj] }
-                    )
+                    if (addTo === 'images') {
+                        this.setState({ images: [...this.state.images, imageObj] })
+                    }
+                    else if (addTo === 'docImages') {
+                        this.setState({ docImages: [...this.state.docImages, imageObj] })
+                    }
                 })
                 .catch((e) => console.log(e));
         }
@@ -165,6 +185,9 @@ class AddPartyModal extends Component {
                         address: res.data.address,
                         desc: res.data.description,
                         images: [res.data.avatar],
+                        docImages: [res.data.document],
+                        selectId: res.data.documentId,
+                        selectedIndex: new IndexPath(res.data.documentId - 1),
                         chr: 15
                     })
                     this.setState({ loading: false })
@@ -181,14 +204,15 @@ class AddPartyModal extends Component {
     }
 
     validateForm() {
-        const { name, fatherName, cnic, contact, address } = this.state
-        if (name && fatherName && cnic && contact && address) {
+        const { name, fatherName, cnic, contact, address, docImages } = this.state
+        if (name && fatherName && cnic && contact && address && docImages.length > 0) {
             this.setState({
                 fNameError: false,
                 lNameError: false,
                 cnicError: false,
                 contactError: false,
                 addressError: false,
+                docImageError: false
             })
             return true
         }
@@ -220,22 +244,32 @@ class AddPartyModal extends Component {
             else {
                 this.setState({ addressError: false })
             }
+            if (docImages.length == 0) {
+                this.setState({ docImageError: true })
+            }
+            else {
+                this.setState({ docImageError: false })
+            }
         }
     }
 
     addNewFarmer() {
         const { toggleModal } = this.props;
-        const { name, fatherName, cnic, contact, address, desc, images } = this.state;
+        const { name, fatherName, cnic, contact, address, desc, images, docImages, selectId } = this.state;
+        // console.log('Images: ', images);
+        // console.log('Doc Images: ', docImages)
+        // console.log('All Images: ', allImages)
         const validateForm = this.validateForm();
         if (validateForm) {
             this.setState({ loading: true })
             if (images.length > 0) {
-                uploadPicture(images)
+                const allImages = [images[0], docImages[0]]
+                uploadPicture(allImages)
                     .then((res) => {
                         if (res.success) {
                             ToastAndroid.show(res.message, ToastAndroid.LONG)
-                            // console.log('ID: ', res.data[0].id)
-                            addFarmer(name, fatherName, cnic, contact, address, desc, res.data[0].id)
+                            console.log('ID: ', res.data)
+                            addFarmer(name, fatherName, cnic, contact, address, desc, res.data[0].id, res.data[1].id, selectId)
                                 .then((res) => {
                                     if (res.success) {
                                         ToastAndroid.show(res.message, ToastAndroid.LONG)
@@ -260,12 +294,26 @@ class AddPartyModal extends Component {
                     })
             }
             else {
-                addFarmer(name, fatherName, cnic, contact, address, desc, null)
+                uploadPicture(docImages)
                     .then((res) => {
                         if (res.success) {
                             ToastAndroid.show(res.message, ToastAndroid.LONG)
-                            this.setState({ loading: false })
-                            toggleModal();
+                            console.log('ID: ', res.data)
+                            addFarmer(name, fatherName, cnic, contact, address, desc, null, res.data[0].id, selectId)
+                                .then((res) => {
+                                    if (res.success) {
+                                        ToastAndroid.show(res.message, ToastAndroid.LONG)
+                                        this.setState({ loading: false })
+                                        toggleModal();
+                                    }
+                                    else {
+                                        this.setState({ loading: false })
+                                    }
+                                })
+                                .catch((err) => {
+                                    console.log('[ERR]: ', err)
+                                    this.setState({ loading: false })
+                                })
                         }
                         else {
                             this.setState({ loading: false })
@@ -280,12 +328,12 @@ class AddPartyModal extends Component {
 
     updateFarmer() {
         const { toggleModal, farmerId } = this.props;
-        const { name, fatherName, cnic, contact, address, desc } = this.state;
-
+        const { name, fatherName, cnic, contact, address, desc, selectId } = this.state;
+        // console.log('ID BATAUN..? ', selectedId)
         const validateForm = this.validateForm();
         if (validateForm) {
             this.setState({ loading: true })
-            updateFarmerById(farmerId, name, fatherName, cnic, contact, address, desc)
+            updateFarmerById(farmerId, name, fatherName, cnic, contact, address, desc, selectId)
                 .then((res) => {
                     if (res.success) {
                         ToastAndroid.show(res.message, ToastAndroid.LONG)
@@ -303,10 +351,27 @@ class AddPartyModal extends Component {
         }
     }
 
-    toggleImageModal = () => {
+    toggleImageModal = (sImage) => {
         const { imageModalVisible } = this.state;
-        this.setState({ imageModalVisible: !imageModalVisible })
+        this.setState({
+            imageModalVisible: !imageModalVisible,
+            sImage: sImage
+        },
+            () => console.log('Image: ', sImage)
+        )
     }
+
+    displayValue = () => {
+        const { selectedIndex, data } = this.state;
+        return (
+            <Text>{data[selectedIndex.row].val}</Text>
+        )
+    }
+
+
+    renderSelectOption = (options) => (
+        <SelectItem key={options.id} title={options.val} />
+    );
 
     render() {
         const { visible, toggleModal, type, farmerId } = this.props;
@@ -319,6 +384,7 @@ class AddPartyModal extends Component {
             desc,
             keyboardSize,
             images,
+            docImages,
             loading,
             fNameError,
             lNameError,
@@ -327,8 +393,12 @@ class AddPartyModal extends Component {
             addressError,
             cnicError,
             contactError,
+            docImageError,
             chr,
             imageModalVisible,
+            selectedIndex,
+            sImage,
+            data,
         } = this.state;
         return (
             <>
@@ -365,7 +435,7 @@ class AddPartyModal extends Component {
                                             :
                                             <TouchableOpacity
                                                 style={styles.uploadBtn}
-                                                onPress={this.askFromWhereToPickImage}
+                                                onPress={() => this.askFromWhereToPickImage('images')}
                                             >
                                                 <Icon
                                                     style={{
@@ -475,6 +545,47 @@ class AddPartyModal extends Component {
                                         )}
                                         onChangeText={nextValue => this.setState({ address: nextValue })}
                                     />
+                                    <Select
+                                        style={styles.select}
+                                        label={() => {
+                                            return (
+                                                <Text style={styles.lableStyle}>Other Documents</Text>
+                                            )
+                                        }}
+                                        placeholder='Default'
+                                        value={this.displayValue}
+                                        selectedIndex={selectedIndex}
+                                        onSelect={index => this.setState({
+                                            selectedIndex: index,
+                                            selectId: index.row + 1,
+                                        }, () => console.log('ID: ', this.state.selectId))}>
+                                        {data.map(this.renderSelectOption)}
+                                    </Select>
+                                    {
+                                        (docImages.length > 0 && docImages[0] != null) ?
+                                            <Images image={docImages[0]} toggle={this.toggleImageModal} />
+                                            :
+                                            <TouchableOpacity
+                                                style={styles.uploadBtn}
+                                                onPress={() => this.askFromWhereToPickImage('docImages')}
+                                            >
+                                                <Icon
+                                                    style={{
+                                                        width: 30,
+                                                        height: 30,
+                                                        margin: 5
+                                                    }}
+                                                    fill={BASE_COLOR}
+                                                    name='plus-circle-outline'
+                                                />
+                                                <Text style={[styles.lableStyle, { marginTop: 0, marginBottom: 5 }]}>Upload Document Picture</Text>
+                                            </TouchableOpacity>
+                                    }
+                                    {
+                                        docImageError ?
+                                            <Text style={styles.captionText}>Document Image Required</Text> :
+                                            null
+                                    }
                                     <Input
                                         defaultValue={desc}
                                         label={() => {
@@ -529,7 +640,7 @@ class AddPartyModal extends Component {
 
                             (imageModalVisible &&
                                 <CustomImageViewer
-                                    image={images[0].uri}
+                                    image={sImage}
                                     visible={true}
                                     closeModal={this.toggleImageModal}
                                 />
@@ -549,7 +660,7 @@ const Images = ({ image, toggle }) => {
     return (
         <TouchableOpacity
             style={{ flex: 1, backgroundColor: FIELD_BACK_COLOR }}
-            onPress={() => toggle()}
+            onPress={() => toggle(currentImage)}
         >
             <Image
                 style={styles.image}

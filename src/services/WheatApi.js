@@ -2,6 +2,7 @@ import axios from 'axios';
 import { IP } from '../../Global'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ToastAndroid } from 'react-native';
+import { Auth } from '../../App';
 
 export const getWheatRecords = async () => {
     const link = `${IP}/submissions`;
@@ -13,43 +14,51 @@ export const getWheatRecords = async () => {
         Authorization: token
     }
     try {
-        const res = await axios.get(link, {headers: header});
+        const res = await axios.get(link, { headers: header });
         // console.log('[RES]: ', res.data.data)
-        return(res.data)
+        return (res.data)
     } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
-export const addProcureWheat = async(vendor, bardanaPP, bardanaJutt, wheatWeight, billNo, billId) => {
+export const addProcureWheat = async (vendor, bardanaPP, bardanaJutt, wheatWeight, billNo, billId) => {
     const link = `${IP}/bardanas/submit`;
     const jsonValue = await AsyncStorage.getItem('@data')
     const token = "Bearer " + JSON.parse(jsonValue).token
-    
+
     const header = {
         Accept: 'application/json',
         Authorization: token
     }
 
     const body = {
-        vendor, 
-        bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
-        bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt, 
-        wheatWeight, 
+        vendor,
+        bardanaPP: bardanaPP == '' ? 0 : bardanaPP,
+        bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt,
+        wheatWeight,
         billNo,
         billId
     }
 
     try {
-        const res = await axios.post(link, body, {headers: header});
+        const res = await axios.post(link, body, { headers: header });
         // console.log('[RES]: ', res)
-        return(res.data)
+        return (res.data)
     } catch (e) {
         // console.error('e -> ', e);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
@@ -63,43 +72,51 @@ export const getWheatRecordById = async (id) => {
     }
 
     try {
-        const res = await axios.get(link, {headers: header})
+        const res = await axios.get(link, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
-export const updateWheatRecord = async(id, vendor, bardanaPP, bardanaJutt, wheatWeight, billNo, billId) => {
+export const updateWheatRecord = async (id, vendor, bardanaPP, bardanaJutt, wheatWeight, billNo, billId) => {
     const link = `${IP}/bardanas/submit/${id}`;
     const jsonValue = await AsyncStorage.getItem('@data')
     const token = "Bearer " + JSON.parse(jsonValue).token
-    
+
     const header = {
         Accept: 'application/json',
         Authorization: token
     }
 
     const body = {
-        vendor, 
-        bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
-        bardanaJutt: bardanaJutt == '' ? 0 : bardanaPP,
-        wheatWeight, 
+        vendor,
+        bardanaPP: bardanaPP == '' ? 0 : bardanaPP,
+        bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt,
+        wheatWeight,
         billNo,
         billId
     }
 
     try {
-        const res = await axios.patch(link, body, {headers: header});
+        const res = await axios.patch(link, body, { headers: header });
         // console.log('[RES]: ', res.data.data)
-        return(res.data)
+        return (res.data)
     } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
@@ -113,13 +130,17 @@ export const deleteWheatById = async (id) => {
     }
 
     try {
-        const res = await axios.delete(link, {headers: header})
+        const res = await axios.delete(link, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 
 }

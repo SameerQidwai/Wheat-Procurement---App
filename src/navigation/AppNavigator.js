@@ -6,9 +6,6 @@ import HomeScreen from '../screens/HomeScreen';
 import PartiesScreen from '../screens/PartiesScreen';
 import WheatScreen from '../screens/WheatScreen';
 import BardanaScreen from '../screens/BardanaScreen';
-import ReceiveBardana from '../screens/ReceiveBardana';
-import RequestBardana from '../screens/RequestBardana';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, GRAY_COLOR } from '../../Global';
 import { color } from 'react-native-reanimated';
@@ -51,10 +48,10 @@ class AppNavigator extends Component {
                     drawerInactiveTintColor: 'white'
                 })}
             >
-                <Drawer.Screen name="Dashboard" component={HomeScreen} />
-                <Drawer.Screen name="Farmers" component={PartiesScreen} />
-                <Drawer.Screen name="Bardana" component={BardanaScreen} />
-                <Drawer.Screen name="Wheat" component={WheatScreen} />
+                <Drawer.Screen name="Dashboard" component={HomeScreen} options={{ unmountOnBlur: true }} />
+                <Drawer.Screen name="Farmers" component={PartiesScreen} options={{ unmountOnBlur: true }} />
+                <Drawer.Screen name="Bardana" component={BardanaScreen} options={{ unmountOnBlur: true }} />
+                <Drawer.Screen name="Wheat" component={WheatScreen} options={{ unmountOnBlur: true }} />
             </Drawer.Navigator>
         );
     }

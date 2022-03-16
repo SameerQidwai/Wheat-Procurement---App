@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { Component } from 'react'
-import { StyleSheet, TouchableOpacity, Keyboard, PermissionsAndroid, View, ToastAndroid, ActivityIndicator, Image, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, TouchableOpacity, Keyboard, PermissionsAndroid, View, ToastAndroid, ActivityIndicator, Image, TouchableWithoutFeedback, Linking } from 'react-native';
 import { BACK_COLOR, BASE_COLOR, DEAFULT_FONT_SIZE, LOADING_GRAY_COLOR, IP, } from './Global';
 import { ApplicationProvider, IconRegistry, Text, Input, Modal, Icon } from '@ui-kitten/components';
 
@@ -14,10 +14,18 @@ import AuthNavigator from './src/navigation/AuthNavigator'
 import LoginScreen from './src/screens/LoginScreen';
 import { getStats } from './src/services/HomeApi';
 import axios from 'axios';
+import DeviceInfo from 'react-native-device-info';
 
+// Exporting th fucntion to call ther global variable.
+export const Auth = () => {
+  console.log('Logout..')
+  window.appJs.removeData()
+}
 class App extends Component {
   constructor(props) {
     super(props);
+    // Setting global variable to call logout function from outside the component.
+    window.appJs = this
     this.getData();
     this.state = {
       data: {},
@@ -28,12 +36,14 @@ class App extends Component {
       secureTextEntry: true,
       passwordError: false,
       confirmError: false,
-      confirmationError: false
+      confirmationError: false,
+      updateModal: false
     }
   }
 
   componentDidMount() {
     SplashScreen.hide();
+    this.checkAppUpdate();
     this.requestCameraPermission();
     Keyboard.addListener("keyboardDidShow", (e) => {
       this.setState({ keyboardSize: e.endCoordinates.height })
@@ -48,6 +58,44 @@ class App extends Component {
     Keyboard.removeAllListeners("keyboardDidShow");
     Keyboard.removeAllListeners("keyboardDidHide");
   }
+
+  checkAppUpdate = async () => {
+    let needsUpdate = true;
+    axios.get(`${IP}/version`)
+      .then((res) => {
+        if (res.data.success) {
+          let latestVersion = res.data.data;
+          let installedVersion = DeviceInfo.getVersion();
+
+          latestVersion = latestVersion.split('.').join('');
+          installedVersion = installedVersion.split('.').join('');
+
+          console.log(
+            latestVersion,
+            installedVersion,
+            latestVersion < installedVersion,
+          );
+          if (latestVersion <= installedVersion) {
+            needsUpdate = false;
+          }
+        }
+      })
+      .catch((error) => {
+        ToastAndroid.show('Something went wonrg.', ToastAndroid.SHORT)
+        console.log('error getting latest version details');
+        console.log(error);
+        needsUpdate = false;
+      })
+      .then(() => {
+        if (needsUpdate) {
+          this.setState({ updateModal: true });
+        }
+        else {
+          this.setState({ updateModal: false });
+          // ToastAndroid.show('Application is up to date.', ToastAndroid.SHORT)
+        }
+      });
+  };
 
   getData = async () => {
     try {
@@ -207,8 +255,20 @@ class App extends Component {
     }
   }
 
+  updateApp = () => {
+    let url = `http://play.google.com/store/apps/details?id=com.khaata`;
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (!supported) {
+        } else {
+          return Linking.openURL(url);
+        }
+      })
+      .catch((err) => console.error('An error occurred', err));
+  };
+
   render() {
-    const { data, loading, visible, keyboardSize, password, confirm, secureTextEntry, passwordError, confirmError, confirmationError } = this.state;
+    const { data, loading, visible, keyboardSize, password, confirm, secureTextEntry, passwordError, confirmError, confirmationError, updateModal } = this.state;
     // console.log('Data: ', data)
     return (
       <>
@@ -302,6 +362,37 @@ class App extends Component {
             </View>
           </Modal>
         }
+        {
+          updateModal &&
+          <Modal
+            backdropStyle={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+            visible={updateModal}
+          >
+            <View style={styles.centeredView}>
+              <View style={[styles.modalView, { marginBottom: keyboardSize + 50, height: 200 }]}>
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={styles.modalHeader}>Update Application</Text>
+                </View>
+
+                <Text>Your application is out of date. Please update your application</Text>
+
+                <TouchableOpacity style={{
+                  borderRadius: 50,
+                  backgroundColor: BASE_COLOR,
+                  width: '100%',
+                  height: 40,
+                  marginTop: '5%',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
+                  onPress={() => { this.updateApp() }}
+                >
+                  <Text style={{ color: 'white' }}>Update Application</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        }
       </>
     )
   }
@@ -309,17 +400,6 @@ class App extends Component {
 
 
 export default App;
-
-// const Loading = () => (
-//   <View style={{
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center'
-//   }}>
-//     <Image style={{ width: 200, height: 200 }} source={require('./assets/FoodDept.png')} />
-//     <Text>Loading...</Text>
-//   </View>
-// )
 
 const styles = StyleSheet.create({
   centeredView: {

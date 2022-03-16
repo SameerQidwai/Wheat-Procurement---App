@@ -2,6 +2,7 @@ import axios from 'axios';
 import { IP } from '../../Global'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ToastAndroid } from 'react-native';
+import { Auth } from '../../App';
 
 export const getFarmers = async () => {
     const link = `${IP}/vendors`;
@@ -18,6 +19,10 @@ export const getFarmers = async () => {
         return (res.data)
     } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
         return ({ success: false })
     }
@@ -29,7 +34,9 @@ export const uploadPicture = async (image) => {
     const token = "Bearer " + JSON.parse(jsonValue).token
 
     const images = new FormData();
-    images.append(`files[]`, image[0])
+    image.forEach(ele => {
+        images.append(`files[]`, ele)
+    });
 
     const data = {
         method: 'POST',
@@ -46,12 +53,16 @@ export const uploadPicture = async (image) => {
         return (json)
     } catch (e) {
         // console.log('e -> ', e);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
         return ({ success: false })
     }
 }
 
-export const addFarmer = async (name, fatherName, cnic, phone, address, description, avatarId) => {
+export const addFarmer = async (name, fatherName, cnic, phone, address, description, avatarId, documentId, documentType) => {
     const jsonValue = await AsyncStorage.getItem('@data')
     const token = "Bearer " + JSON.parse(jsonValue).token
     const link = `${IP}/vendors/create`;
@@ -63,7 +74,9 @@ export const addFarmer = async (name, fatherName, cnic, phone, address, descript
         cnic,
         address,
         description,
-        avatarId
+        avatarId,
+        documentId,
+        documentType
     }
 
     const header = {
@@ -75,7 +88,11 @@ export const addFarmer = async (name, fatherName, cnic, phone, address, descript
         // console.log('Res', res)
         return (res.data)
     } catch (e) {
-        console.log('e -> ', e.response.data.message);
+        // console.log('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
         return ({ success: false })
     }
@@ -96,12 +113,16 @@ export const getFarmerById = async (id) => {
         return (res.data)
     } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
         return ({ success: false })
     }
 }
 
-export const updateFarmerById = async (id, name, fatherName, cnic, phone, address, description) => {
+export const updateFarmerById = async (id, name, fatherName, cnic, phone, address, description, documentType) => {
     const link = `${IP}/vendors/${id}`;
     const jsonValue = await AsyncStorage.getItem('@data')
     const token = "Bearer " + JSON.parse(jsonValue).token
@@ -117,6 +138,7 @@ export const updateFarmerById = async (id, name, fatherName, cnic, phone, addres
         cnic,
         address,
         description,
+        documentType,
         avatarId: null
     }
 
@@ -126,6 +148,10 @@ export const updateFarmerById = async (id, name, fatherName, cnic, phone, addres
         return (res.data)
     } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
         return ({ success: false })
     }
@@ -153,6 +179,10 @@ export const requestBardanaForFarmer = async (id, bardanaPP, bardanaJutt) => {
         return (res.data)
     } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
         return ({ success: false })
     }
@@ -173,6 +203,10 @@ export const deleteFarmerById = async (id) => {
         return (res.data)
     } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
         return ({ success: false })
     }

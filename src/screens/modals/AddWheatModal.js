@@ -171,6 +171,7 @@ class AddWheatModal extends Component {
             uploadPicture(images)
                 .then((res) => {
                     if (res.success) {
+                        console.log('ADD ID: ', res.data[0].id)
                         addProcureWheat(sFarmerId, pp, jute, netWeight, billNo, res.data[0].id)
                             .then((res) => {
                                 if (res.success) {
@@ -202,7 +203,8 @@ class AddWheatModal extends Component {
         getWheatRecordById(id)
             .then((res) => {
                 if (res.success) {
-                    // console.log('RES: ', res.data)
+                    console.log('RES: ', res.data)
+                    // console.log('GET ID: ', res.data.billId)
                     this.setState({
                         sFarmerId: res.data.vendorId,
                         sFarmer: res.data.cnic,
@@ -226,6 +228,7 @@ class AddWheatModal extends Component {
     updateWheatProcure() {
         const { toggleModal, recordId } = this.props
         const { sFarmerId, pp, jute, netWeight, billNo, billId } = this.state
+        console.log('UPDATE ID: ', billId)
         const validateForm = this.validateForm()
         if (validateForm) {
             this.setState({ loading: true })

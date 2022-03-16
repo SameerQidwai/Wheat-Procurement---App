@@ -2,6 +2,7 @@ import axios from 'axios';
 import { IP } from '../../Global'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ToastAndroid } from 'react-native';
+import { Auth } from '../../App';
 
 export const getAllBardanas = async () => {
     const link = `${IP}/bardanas`;
@@ -13,13 +14,17 @@ export const getAllBardanas = async () => {
     }
 
     try {
-        const res = await axios.get(link, {headers: header})
+        const res = await axios.get(link, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
@@ -31,22 +36,26 @@ export const receiveBardanaFromDFC = async (bardanaPP, bardanaJutt) => {
     const header = {
         Authorization: token
     }
-    
+
     const body = {
-        bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
+        bardanaPP: bardanaPP == '' ? 0 : bardanaPP,
         bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
     // console.log('Link: ', link)
     // console.log('Body: ', body)
 
     try {
-        const res = await axios.post(link, body, {headers: header})
+        const res = await axios.post(link, body, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
@@ -60,13 +69,17 @@ export const getBardanaRecordById = async (id) => {
     }
 
     try {
-        const res = await axios.get(link, {headers: header})
+        const res = await axios.get(link, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
@@ -80,18 +93,22 @@ export const updateReceiveRecordById = async (id, bardanaPP, bardanaJutt) => {
     }
 
     const body = {
-        bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
+        bardanaPP: bardanaPP == '' ? 0 : bardanaPP,
         bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
 
     try {
-        const res = await axios.patch(link, body, {headers: header})
+        const res = await axios.patch(link, body, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
@@ -105,17 +122,21 @@ export const searchFarmerCnic = async (cnic) => {
     }
 
     try {
-        const res = await axios.get(link, {headers: header})
+        const res = await axios.get(link, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
-export const alllocateBardanatoFarmer = async ( vendor, bardanaPP, bardanaJutt) => {
+export const alllocateBardanatoFarmer = async (vendor, bardanaPP, bardanaJutt) => {
     const link = `${IP}/bardanas/allocate`;
     const jsonValue = await AsyncStorage.getItem('@data')
     const token = "Bearer " + JSON.parse(jsonValue).token
@@ -123,27 +144,31 @@ export const alllocateBardanatoFarmer = async ( vendor, bardanaPP, bardanaJutt) 
     const header = {
         Authorization: token
     }
-    
+
     const body = {
         vendor,
-        bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
+        bardanaPP: bardanaPP == '' ? 0 : bardanaPP,
         bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
     // console.log('Link: ', link)
     // console.log('Body: ', body)
 
     try {
-        const res = await axios.post(link, body, {headers: header})
+        const res = await axios.post(link, body, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
-export const returnBardanaFromFarmer = async ( returner, bardanaPP, bardanaJutt) => {
+export const returnBardanaFromFarmer = async (returner, bardanaPP, bardanaJutt) => {
     const link = `${IP}/bardanas/return`;
     const jsonValue = await AsyncStorage.getItem('@data')
     const token = "Bearer " + JSON.parse(jsonValue).token
@@ -151,27 +176,31 @@ export const returnBardanaFromFarmer = async ( returner, bardanaPP, bardanaJutt)
     const header = {
         Authorization: token
     }
-    
+
     const body = {
         returner,
-        bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
+        bardanaPP: bardanaPP == '' ? 0 : bardanaPP,
         bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
     // console.log('Link: ', link)
     // console.log('Body: ', body)
 
     try {
-        const res = await axios.post(link, body, {headers: header})
+        const res = await axios.post(link, body, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
-export const updateBardanaIssuedToFarmer = async ( id, vendor, bardanaPP, bardanaJutt) => {
+export const updateBardanaIssuedToFarmer = async (id, vendor, bardanaPP, bardanaJutt) => {
     const link = `${IP}/bardanas/allocate/${id}`;
     const jsonValue = await AsyncStorage.getItem('@data')
     const token = "Bearer " + JSON.parse(jsonValue).token
@@ -179,25 +208,29 @@ export const updateBardanaIssuedToFarmer = async ( id, vendor, bardanaPP, bardan
     const header = {
         Authorization: token
     }
-    
+
     const body = {
         vendor,
-        bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
+        bardanaPP: bardanaPP == '' ? 0 : bardanaPP,
         bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
 
     try {
-        const res = await axios.patch(link, body, {headers: header})
+        const res = await axios.patch(link, body, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
-export const updateBardanaReturnFromFarmer = async ( id, returner, bardanaPP, bardanaJutt) => {
+export const updateBardanaReturnFromFarmer = async (id, returner, bardanaPP, bardanaJutt) => {
     const link = `${IP}/bardanas/return/${id}`;
     const jsonValue = await AsyncStorage.getItem('@data')
     const token = "Bearer " + JSON.parse(jsonValue).token
@@ -205,21 +238,25 @@ export const updateBardanaReturnFromFarmer = async ( id, returner, bardanaPP, ba
     const header = {
         Authorization: token
     }
-    
+
     const body = {
         returner,
-        bardanaPP: bardanaPP == '' ? 0 : bardanaPP, 
+        bardanaPP: bardanaPP == '' ? 0 : bardanaPP,
         bardanaJutt: bardanaJutt == '' ? 0 : bardanaJutt
     }
 
     try {
-        const res = await axios.patch(link, body, {headers: header})
+        const res = await axios.patch(link, body, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 }
 
@@ -233,13 +270,17 @@ export const deleteBArdanaById = async (id) => {
     }
 
     try {
-        const res = await axios.delete(link, {headers: header})
+        const res = await axios.delete(link, { headers: header })
         // console.log('RES: ', res.data)
-        return(res.data)
-    } catch(e){
+        return (res.data)
+    } catch (e) {
         // console.error('e -> ', e.response.data.message);
+        if (e?.response?.data?.message == 'Unauthenticated.') {
+            // Calling thr global function to logout..
+            Auth()
+        }
         ToastAndroid.show(e.response.data.message, ToastAndroid.LONG)
-        return({success: false})
+        return ({ success: false })
     }
 
 }

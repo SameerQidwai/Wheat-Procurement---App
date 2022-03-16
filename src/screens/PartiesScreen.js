@@ -8,6 +8,8 @@ import AddPartyModal from './modals/AddPartyModal';
 import FarmerOptionModal from './modals/FarmerOptionModal';
 import BardanaModal from './modals/BardanaModal';
 import { getFarmers } from '../services/FarmerApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 class PartiesScreen extends Component {
     constructor(props) {
         super(props);
@@ -27,6 +29,20 @@ class PartiesScreen extends Component {
 
     componentDidMount() {
         this.getData()
+    }
+
+    storeExpiredToken = async () => {
+        try {
+            const jsonValue = JSON.stringify({
+                institute: 'ABC',
+                token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiMDNlODRjMDk1NmE5NGY0Yjc3YzMxOGY1MWNkYmVlNDg0YmE4OWRjNTRmMWY1MGU3YzliMWUyYjEwYjUwN2NjMWRiODExYWJiNTY3M2E2OWMiLCJpYXQiOjE2NDY4ODQ1OTQuNDU4NTkyLCJuYmYiOjE2NDY4ODQ1OTQuNDU4NTk0LCJleHAiOjE2Nzg0MjA1OTQuNDUzOTUsInN1YiI6IjQiLCJzY29wZXMiOltdfQ.yOYQ2-gWfIYVNkoisInBEfLjUxqInFrtNDXgozY37WuUIRLs0XyKcZd6l6Z9AMt9-_NWa3NlTe01tb0O2RWtdLP0C9RpS5B9Rct77LMtyFsWweyPu5oJfARngcM2tgkfXtvsUUWZGG1IMr0Ek1KswpoJ-0hbUE750hXz2ZpyHTs94z8mPNrsSA2JvCZkr4-gBkcDJ4ZeLtyPo4kwOBQZN9TgIlpo3kIxVtu2axDchwQVu1d0BkMtEBbQLc0hLlXuuT57wEXOuWcqHINcq7-XHp5sqwkqGmARi6yQN1ybjaUtZfmViSrhFWx1RL1Aoi9QVlk2nX-NBIcb1sqNhliasu4vJpu8MMsGrISWlsgOCHTRRX4uHuX3JEQf1iEqSa6OSeeBRcJExMGVL_lcO15bc66cnDQPVNIaD5KC27l4XOa14aR8ChsCR2sTV3WMUxAt9P1W--nhbChtvdHKjc_4KtFYnYGxnI6tJjCIS1DX5uLHwHyvds2-CVceO9cbgxTMX31fSyEPmxvB2uniwApOHHMj-n7OLuHCQ_s2-ifWhJylxtXeN3DhQ0Twz3ruTSJYH3QZiQ8JZsIxs4qg997dYIsNm_h7yIUrOjuy_OhL9pjpiaXXf9e0uemLiY3YrxfjLwjZ-aj4wLHD8s5S6t3M5rONMD-Iz1VmxrxBnF1iH-k',
+                defaultPassword: 0
+            })
+            await AsyncStorage.setItem('@data', jsonValue)
+            return
+        } catch (e) {
+            console.log('e --> ', e)
+        }
     }
 
     getData() {
