@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Modal, ToastAndroid } from 'react-native';
+import { Modal, ToastAndroid, Text } from 'react-native';
 import { TOUCHABLE_STATE } from 'react-native-gesture-handler/lib/typescript/components/touchables/GenericTouchable';
 import ImageViewer from 'react-native-image-zoom-viewer';
 

@@ -81,7 +81,7 @@ class LoginScreen extends Component {
 
             try {
                 const res = await axios.post(link, body);
-                console.log('RES: ', res.data)
+                // console.log('RES: ', res.data)
                 const { institute, token, defaultPassword } = res.data.data;
                 // console.log('HERE2')
                 this.storeData({ institute, token, defaultPassword })
